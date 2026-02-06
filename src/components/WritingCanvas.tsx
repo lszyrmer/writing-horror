@@ -30,10 +30,14 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
       }
     }
 
-    const isTypingKey = e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace';
+    const isTypingKey = e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Unidentified' || e.key === 'Process';
     if (isTypingKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
       pendingKeypressRef.current = true;
     }
+  }
+
+  function handleBeforeInput() {
+    pendingKeypressRef.current = true;
   }
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -66,6 +70,7 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
       value={text}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
+      onBeforeInput={handleBeforeInput}
       onPaste={handlePaste}
       onCopy={handleCopy}
       onCut={handleCut}
