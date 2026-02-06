@@ -128,16 +128,9 @@ export default function StatsBar({
           </span>
           <span className="text-gray-400">WPM</span>
           {pace && !goalReached && (
-            <span
-              className={`w-2.5 h-2.5 rounded-full ml-1 ${
-                pace.textColor === 'text-emerald-400' ? 'bg-emerald-400' :
-                pace.textColor === 'text-emerald-500' ? 'bg-emerald-500' :
-                pace.textColor === 'text-yellow-400' ? 'bg-yellow-400' :
-                pace.textColor === 'text-red-400' ? 'bg-red-400' :
-                'bg-gray-400'
-              }`}
-              title={`${pace.label}${pace.requiredWPM > 0 ? ` — need ${pace.requiredWPM} wpm` : ''}`}
-            />
+            <span className={`text-sm font-medium ml-2 ${pace.textColor}`}>
+              {pace.label}
+            </span>
           )}
         </div>
 
