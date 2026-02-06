@@ -1,12 +1,15 @@
 import { DEFAULT_SOUNDS } from './defaultSounds';
 
+const TYPEWRITER_POOL_SIZE = 6;
+
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private beepInterval: number | null = null;
   private alertAudio: HTMLAudioElement | null = null;
   private isPlaying = false;
   private typewriterEnabled = true;
-  private typewriterBuffer: AudioBuffer | null = null;
+  private typewriterPool: HTMLAudioElement[] = [];
+  private typewriterPoolIndex = 0;
   private paragraphAudio: HTMLAudioElement | null = null;
   private targetWpmAudio: HTMLAudioElement | null = null;
 
@@ -22,16 +25,14 @@ export class AudioManager {
 
   async setTypewriterSound(url?: string) {
     const src = url || DEFAULT_SOUNDS.typewriter;
-    try {
-      const response = await fetch(src);
-      const arrayBuffer = await response.arrayBuffer();
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      this.typewriterBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-    } catch {
-      this.typewriterBuffer = null;
+    this.typewriterPool = [];
+    for (let i = 0; i < TYPEWRITER_POOL_SIZE; i++) {
+      const audio = new Audio(src);
+      audio.volume = 0.5;
+      audio.load();
+      this.typewriterPool.push(audio);
     }
+    this.typewriterPoolIndex = 0;
   }
 
   setParagraphSound(url?: string) {
@@ -66,71 +67,29 @@ export class AudioManager {
     this.targetWpmAudio.currentTime = 0;
   }
 
-  async warmUp() {
+  warmUp() {
     if (!this.audioContext) {
       try {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       } catch {
-        return;
+        /* ignore */
       }
     }
-    if (this.audioContext.state === 'suspended') {
-      try { await this.audioContext.resume(); } catch { /* ignore */ }
+    if (this.audioContext?.state === 'suspended') {
+      this.audioContext.resume().catch(() => {});
+    }
+    for (const audio of this.typewriterPool) {
+      audio.load();
     }
   }
 
-  async playTypewriterSound() {
-    if (!this.typewriterEnabled) return;
+  playTypewriterSound() {
+    if (!this.typewriterEnabled || this.typewriterPool.length === 0) return;
 
-    if (!this.audioContext) {
-      try {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      } catch {
-        return;
-      }
-    }
-
-    if (this.audioContext.state === 'suspended') {
-      try { await this.audioContext.resume(); } catch { return; }
-    }
-    if (this.audioContext.state !== 'running') return;
-
-    const ctx = this.audioContext;
-    const t = ctx.currentTime;
-
-    if (this.typewriterBuffer) {
-      const source = ctx.createBufferSource();
-      source.buffer = this.typewriterBuffer;
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.5, t);
-      source.connect(gain);
-      gain.connect(ctx.destination);
-      source.start(t);
-      return;
-    }
-
-    const bufferSize = 2 * ctx.sampleRate;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const output = buffer.getChannelData(0);
-
-    const clickDuration = 0.012;
-    const clickSamples = Math.floor(clickDuration * ctx.sampleRate);
-    for (let i = 0; i < clickSamples; i++) {
-      const env = 1 - (i / clickSamples);
-      output[i] = (Math.random() * 2 - 1) * env * 0.6;
-    }
-
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.4, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
-
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start(t);
-    source.stop(t + 0.02);
+    const audio = this.typewriterPool[this.typewriterPoolIndex];
+    this.typewriterPoolIndex = (this.typewriterPoolIndex + 1) % this.typewriterPool.length;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
   }
 
   play() {
@@ -211,7 +170,8 @@ export class AudioManager {
       this.audioContext = null;
     }
     this.alertAudio = null;
-    this.typewriterBuffer = null;
+    this.typewriterPool = [];
+    this.typewriterPoolIndex = 0;
     this.paragraphAudio = null;
     this.targetWpmAudio = null;
   }
