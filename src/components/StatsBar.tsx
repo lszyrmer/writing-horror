@@ -1,4 +1,4 @@
-import { Clock, Target, Zap, Square, TrendingUp, TrendingDown, AlertTriangle, Check } from 'lucide-react';
+import { Clock, Target, Zap, Square } from 'lucide-react';
 
 interface StatsBarProps {
   wordCount: number;
@@ -11,9 +11,7 @@ interface StatsBarProps {
 
 interface PaceStatus {
   label: string;
-  color: string;
   textColor: string;
-  icon: typeof TrendingUp;
   requiredWPM: number;
 }
 
@@ -33,9 +31,7 @@ function getPaceStatus(
   if (timeRemainingSeconds <= 0) {
     return {
       label: 'Time up',
-      color: 'bg-red-900/40 border-red-700/50',
       textColor: 'text-red-400',
-      icon: AlertTriangle,
       requiredWPM: 0,
     };
   }
@@ -46,9 +42,7 @@ function getPaceStatus(
   if (currentWPM === 0) {
     return {
       label: 'Start typing',
-      color: 'bg-gray-800/40 border-gray-700/50',
       textColor: 'text-gray-400',
-      icon: TrendingUp,
       requiredWPM,
     };
   }
@@ -58,35 +52,27 @@ function getPaceStatus(
   if (ratio >= 1.3) {
     return {
       label: 'Ahead',
-      color: 'bg-emerald-900/30 border-emerald-700/40',
       textColor: 'text-emerald-400',
-      icon: Check,
       requiredWPM,
     };
   }
   if (ratio >= 1.0) {
     return {
       label: 'On pace',
-      color: 'bg-emerald-900/20 border-emerald-800/30',
       textColor: 'text-emerald-500',
-      icon: TrendingUp,
       requiredWPM,
     };
   }
   if (ratio >= 0.75) {
     return {
       label: 'Pick up pace',
-      color: 'bg-yellow-900/30 border-yellow-700/40',
       textColor: 'text-yellow-400',
-      icon: TrendingDown,
       requiredWPM,
     };
   }
   return {
     label: 'Falling behind',
-    color: 'bg-red-900/30 border-red-700/40',
     textColor: 'text-red-400',
-    icon: AlertTriangle,
     requiredWPM,
   };
 }
@@ -135,26 +121,24 @@ export default function StatsBar({
           )}
         </div>
 
-        {pace && !goalReached && (
-          <div className={`flex items-center space-x-2 px-3 py-1 rounded border ${pace.color}`}>
-            <pace.icon size={14} className={pace.textColor} />
-            <span className={`text-sm font-medium ${pace.textColor}`}>
-              {pace.label}
-            </span>
-            {pace.requiredWPM > 0 && (
-              <span className="text-gray-500 text-xs">
-                need {pace.requiredWPM} wpm
-              </span>
-            )}
-          </div>
-        )}
-
         <div className="flex items-center space-x-2">
           <Zap size={18} className="text-gray-400" />
           <span className="text-gray-100 font-bold text-xl">
             {currentWPM}
           </span>
           <span className="text-gray-400">WPM</span>
+          {pace && !goalReached && (
+            <span
+              className={`w-2.5 h-2.5 rounded-full ml-1 ${
+                pace.textColor === 'text-emerald-400' ? 'bg-emerald-400' :
+                pace.textColor === 'text-emerald-500' ? 'bg-emerald-500' :
+                pace.textColor === 'text-yellow-400' ? 'bg-yellow-400' :
+                pace.textColor === 'text-red-400' ? 'bg-red-400' :
+                'bg-gray-400'
+              }`}
+              title={`${pace.label}${pace.requiredWPM > 0 ? ` — need ${pace.requiredWPM} wpm` : ''}`}
+            />
+          )}
         </div>
 
         <button
