@@ -1,79 +1,61 @@
+import { DEFAULT_SOUNDS } from './defaultSounds';
+
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private beepInterval: number | null = null;
-  private customAudio: HTMLAudioElement | null = null;
+  private alertAudio: HTMLAudioElement | null = null;
   private isPlaying = false;
-  private useCustom = false;
   private typewriterEnabled = true;
-  private customTypewriterBuffer: AudioBuffer | null = null;
-  private useCustomTypewriter = false;
+  private typewriterBuffer: AudioBuffer | null = null;
   private paragraphAudio: HTMLAudioElement | null = null;
-  private useCustomParagraphSound = false;
   private targetWpmAudio: HTMLAudioElement | null = null;
-  private useCustomTargetWpmSound = false;
 
   setTypewriterEnabled(enabled: boolean) {
     this.typewriterEnabled = enabled;
   }
 
-  setCustomAudio(url: string, enabled: boolean) {
-    this.useCustom = enabled && url.length > 0;
-    if (this.useCustom) {
-      this.customAudio = new Audio(url);
-      this.customAudio.loop = true;
-    }
+  setAlertSound(url?: string) {
+    const src = url || DEFAULT_SOUNDS.alert;
+    this.alertAudio = new Audio(src);
+    this.alertAudio.loop = true;
   }
 
-  async setCustomTypewriterSound(url: string, enabled: boolean) {
-    this.useCustomTypewriter = enabled && url.length > 0;
-    if (!this.useCustomTypewriter || !url) {
-      this.customTypewriterBuffer = null;
-      return;
-    }
-
+  async setTypewriterSound(url?: string) {
+    const src = url || DEFAULT_SOUNDS.typewriter;
     try {
-      const response = await fetch(url);
+      const response = await fetch(src);
       const arrayBuffer = await response.arrayBuffer();
       if (!this.audioContext) {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
-      this.customTypewriterBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      this.typewriterBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
     } catch {
-      this.customTypewriterBuffer = null;
-      this.useCustomTypewriter = false;
+      this.typewriterBuffer = null;
     }
   }
 
-  setCustomParagraphSound(url: string, enabled: boolean) {
-    this.useCustomParagraphSound = enabled && url.length > 0;
-    if (this.useCustomParagraphSound && url) {
-      this.paragraphAudio = new Audio(url);
-      this.paragraphAudio.volume = 0.6;
-      this.paragraphAudio.load();
-    } else {
-      this.paragraphAudio = null;
-    }
+  setParagraphSound(url?: string) {
+    const src = url || DEFAULT_SOUNDS.paragraph;
+    this.paragraphAudio = new Audio(src);
+    this.paragraphAudio.volume = 0.6;
+    this.paragraphAudio.load();
   }
 
   playParagraphSound() {
-    if (!this.useCustomParagraphSound || !this.paragraphAudio) return;
+    if (!this.paragraphAudio) return;
     this.paragraphAudio.currentTime = 0;
     this.paragraphAudio.play().catch(() => {});
   }
 
-  setCustomTargetWpmSound(url: string, enabled: boolean) {
-    this.useCustomTargetWpmSound = enabled && url.length > 0;
-    if (this.useCustomTargetWpmSound && url) {
-      this.targetWpmAudio = new Audio(url);
-      this.targetWpmAudio.volume = 0.6;
-      this.targetWpmAudio.load();
-    } else {
-      this.targetWpmAudio = null;
-    }
+  setTargetWpmSound(url?: string) {
+    const src = url || DEFAULT_SOUNDS.targetWpm;
+    this.targetWpmAudio = new Audio(src);
+    this.targetWpmAudio.volume = 0.6;
+    this.targetWpmAudio.load();
   }
 
   playTargetWpmSound() {
-    if (!this.useCustomTargetWpmSound || !this.targetWpmAudio) return;
+    if (!this.targetWpmAudio) return;
     this.targetWpmAudio.currentTime = 0;
     this.targetWpmAudio.play().catch(() => {});
   }
@@ -92,7 +74,16 @@ export class AudioManager {
   }
 
   playTypewriterSound() {
-    if (!this.typewriterEnabled || !this.audioContext) return;
+    if (!this.typewriterEnabled) return;
+
+    if (!this.audioContext) {
+      try {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      } catch {
+        return;
+      }
+    }
+
     if (this.audioContext.state === 'suspended') {
       this.audioContext.resume();
     }
@@ -101,9 +92,9 @@ export class AudioManager {
     const ctx = this.audioContext;
     const t = ctx.currentTime;
 
-    if (this.useCustomTypewriter && this.customTypewriterBuffer) {
+    if (this.typewriterBuffer) {
       const source = ctx.createBufferSource();
-      source.buffer = this.customTypewriterBuffer;
+      source.buffer = this.typewriterBuffer;
       const gain = ctx.createGain();
       gain.gain.setValueAtTime(0.5, t);
       source.connect(gain);
@@ -144,8 +135,8 @@ export class AudioManager {
       this.audioContext.resume();
     }
 
-    if (this.useCustom && this.customAudio) {
-      this.customAudio.play().catch(() => {
+    if (this.alertAudio) {
+      this.alertAudio.play().catch(() => {
         this.startBeepLoop();
       });
     } else {
@@ -187,9 +178,9 @@ export class AudioManager {
     if (!this.isPlaying) return;
     this.isPlaying = false;
 
-    if (this.customAudio) {
-      this.customAudio.pause();
-      this.customAudio.currentTime = 0;
+    if (this.alertAudio) {
+      this.alertAudio.pause();
+      this.alertAudio.currentTime = 0;
     }
 
     if (this.beepInterval !== null) {
@@ -204,8 +195,8 @@ export class AudioManager {
       this.audioContext.close();
       this.audioContext = null;
     }
-    this.customAudio = null;
-    this.customTypewriterBuffer = null;
+    this.alertAudio = null;
+    this.typewriterBuffer = null;
     this.paragraphAudio = null;
     this.targetWpmAudio = null;
   }

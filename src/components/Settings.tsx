@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Upload, Play, Square, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Play, Square, Save, CheckCircle, RotateCcw } from 'lucide-react';
 import { getUserSettings, saveUserSettings, saveCustomAudio } from '../lib/supabase';
+import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
 
 interface SettingsProps {
   onBack: () => void;
@@ -190,11 +191,8 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       }
       setTestTypewriterPlaying(false);
     } else {
-      if (!customTypewriterUrl) {
-        alert('Please upload an audio file first');
-        return;
-      }
-      typewriterAudioRef.current = new Audio(customTypewriterUrl);
+      const src = (useCustomTypewriter && customTypewriterUrl) ? customTypewriterUrl : DEFAULT_SOUNDS.typewriter;
+      typewriterAudioRef.current = new Audio(src);
       typewriterAudioRef.current.play();
       typewriterAudioRef.current.addEventListener('ended', () => setTestTypewriterPlaying(false));
       setTestTypewriterPlaying(true);
@@ -233,11 +231,8 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       }
       setTestParagraphPlaying(false);
     } else {
-      if (!customParagraphSoundUrl) {
-        alert('Please upload an audio file first');
-        return;
-      }
-      paragraphAudioRef.current = new Audio(customParagraphSoundUrl);
+      const src = (useCustomParagraphSound && customParagraphSoundUrl) ? customParagraphSoundUrl : DEFAULT_SOUNDS.paragraph;
+      paragraphAudioRef.current = new Audio(src);
       paragraphAudioRef.current.play();
       paragraphAudioRef.current.addEventListener('ended', () => setTestParagraphPlaying(false));
       setTestParagraphPlaying(true);
@@ -276,11 +271,8 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       }
       setTestTargetWpmPlaying(false);
     } else {
-      if (!customTargetWpmSoundUrl) {
-        alert('Please upload an audio file first');
-        return;
-      }
-      targetWpmAudioRef.current = new Audio(customTargetWpmSoundUrl);
+      const src = (useCustomTargetWpmSound && customTargetWpmSoundUrl) ? customTargetWpmSoundUrl : DEFAULT_SOUNDS.targetWpm;
+      targetWpmAudioRef.current = new Audio(src);
       targetWpmAudioRef.current.play();
       targetWpmAudioRef.current.addEventListener('ended', () => setTestTargetWpmPlaying(false));
       setTestTargetWpmPlaying(true);
@@ -295,11 +287,8 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       }
       setTestPlaying(false);
     } else {
-      if (!customAudioUrl) {
-        alert('Please upload an audio file first');
-        return;
-      }
-      audioRef.current = new Audio(customAudioUrl);
+      const src = (useCustomAudio && customAudioUrl) ? customAudioUrl : DEFAULT_SOUNDS.alert;
+      audioRef.current = new Audio(src);
       audioRef.current.play();
       audioRef.current.addEventListener('ended', () => setTestPlaying(false));
       setTestPlaying(true);
@@ -425,63 +414,56 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
           </div>
 
           <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-100 mb-4">Alert Sound</h2>
+            <h2 className="text-xl font-semibold text-gray-100 mb-2">Alert Sound</h2>
+            <p className="text-gray-500 text-sm mb-4">Plays when your WPM drops below the minimum</p>
 
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
+              <p className="text-gray-400 text-sm">
+                {useCustomAudio && customAudioUrl ? 'Using custom sound' : 'Using default sound'}
+              </p>
+
+              <button
+                onClick={handleTestAudio}
+                className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+              >
+                {testPlaying ? (
+                  <>
+                    <Square size={18} />
+                    <span>Stop Test</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={18} />
+                    <span>Test Sound</span>
+                  </>
+                )}
+              </button>
+
+              <div>
                 <input
-                  type="checkbox"
-                  id="useCustomAudio"
-                  checked={useCustomAudio}
-                  onChange={(e) => setUseCustomAudio(e.target.checked)}
-                  className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
                 />
-                <label htmlFor="useCustomAudio" className="text-gray-300 cursor-pointer select-none">
-                  Use custom audio file (otherwise browser beep)
-                </label>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Upload size={18} />
+                  <span>Upload Custom Sound (max 5MB)</span>
+                </button>
               </div>
 
-              {useCustomAudio && (
-                <>
-                  <div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="audio/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                    >
-                      <Upload size={18} />
-                      <span>Upload Audio File (max 5MB)</span>
-                    </button>
-                    {customAudioUrl && (
-                      <p className="text-gray-400 text-sm mt-2">Audio file uploaded</p>
-                    )}
-                  </div>
-
-                  {customAudioUrl && (
-                    <button
-                      onClick={handleTestAudio}
-                      className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                    >
-                      {testPlaying ? (
-                        <>
-                          <Square size={18} />
-                          <span>Stop Test</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play size={18} />
-                          <span>Test Audio</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-                </>
+              {useCustomAudio && customAudioUrl && (
+                <button
+                  onClick={() => { setUseCustomAudio(false); setCustomAudioUrl(''); }}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset to Default</span>
+                </button>
               )}
             </div>
           </div>
@@ -504,71 +486,59 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
               </div>
 
               {typewriterSoundEnabled && (
-                <>
-                  <div className="border-t border-dark-lighter pt-4">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <input
-                        type="checkbox"
-                        id="useCustomTypewriter"
-                        checked={useCustomTypewriter}
-                        onChange={(e) => setUseCustomTypewriter(e.target.checked)}
-                        className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
-                      />
-                      <label htmlFor="useCustomTypewriter" className="text-gray-300 cursor-pointer select-none">
-                        Use custom sound file (otherwise built-in click)
-                      </label>
-                    </div>
+                <div className="border-t border-dark-lighter pt-4 space-y-3">
+                  <p className="text-gray-400 text-sm">
+                    {useCustomTypewriter && customTypewriterUrl ? customTypewriterName : 'Using default sound'}
+                  </p>
 
-                    {useCustomTypewriter && (
-                      <div className="space-y-3 pl-8">
-                        <input
-                          ref={typewriterFileInputRef}
-                          type="file"
-                          accept="audio/*"
-                          onChange={handleTypewriterFileUpload}
-                          className="hidden"
-                        />
-                        <button
-                          onClick={() => typewriterFileInputRef.current?.click()}
-                          className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                        >
-                          <Upload size={18} />
-                          <span>Upload Typewriter Sound (max 5MB)</span>
-                        </button>
-                        {customTypewriterUrl && (
-                          <>
-                            <p className="text-gray-400 text-sm">{customTypewriterName}</p>
-                            <button
-                              onClick={handleTestTypewriterAudio}
-                              className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                            >
-                              {testTypewriterPlaying ? (
-                                <>
-                                  <Square size={18} />
-                                  <span>Stop Test</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Play size={18} />
-                                  <span>Test Sound</span>
-                                </>
-                              )}
-                            </button>
-                          </>
-                        )}
-                        <p className="text-gray-500 text-xs">
-                          Upload a short click or clack sound. It will play once per keystroke.
-                        </p>
-                      </div>
+                  <button
+                    onClick={handleTestTypewriterAudio}
+                    className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+                  >
+                    {testTypewriterPlaying ? (
+                      <>
+                        <Square size={18} />
+                        <span>Stop Test</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play size={18} />
+                        <span>Test Sound</span>
+                      </>
                     )}
+                  </button>
+
+                  <div>
+                    <input
+                      ref={typewriterFileInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleTypewriterFileUpload}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => typewriterFileInputRef.current?.click()}
+                      className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Upload size={18} />
+                      <span>Upload Custom Sound (max 5MB)</span>
+                    </button>
                   </div>
 
-                  {!useCustomTypewriter && (
-                    <p className="text-gray-400 text-sm">
-                      Using built-in mechanical click sound
-                    </p>
+                  {useCustomTypewriter && customTypewriterUrl && (
+                    <button
+                      onClick={() => { setUseCustomTypewriter(false); setCustomTypewriterUrl(''); setCustomTypewriterName(''); }}
+                      className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
+                    >
+                      <RotateCcw size={14} />
+                      <span>Reset to Default</span>
+                    </button>
                   )}
-                </>
+
+                  <p className="text-gray-500 text-xs">
+                    Plays once per keystroke.
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -578,60 +548,52 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             <p className="text-gray-500 text-sm mb-4">Plays when you start a new paragraph (double Enter)</p>
 
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
+              <p className="text-gray-400 text-sm">
+                {useCustomParagraphSound && customParagraphSoundUrl ? customParagraphSoundName : 'Using default sound'}
+              </p>
+
+              <button
+                onClick={handleTestParagraphAudio}
+                className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+              >
+                {testParagraphPlaying ? (
+                  <>
+                    <Square size={18} />
+                    <span>Stop Test</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={18} />
+                    <span>Test Sound</span>
+                  </>
+                )}
+              </button>
+
+              <div>
                 <input
-                  type="checkbox"
-                  id="useCustomParagraphSound"
-                  checked={useCustomParagraphSound}
-                  onChange={(e) => setUseCustomParagraphSound(e.target.checked)}
-                  className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
+                  ref={paragraphFileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleParagraphFileUpload}
+                  className="hidden"
                 />
-                <label htmlFor="useCustomParagraphSound" className="text-gray-300 cursor-pointer select-none">
-                  Enable custom paragraph sound
-                </label>
+                <button
+                  onClick={() => paragraphFileInputRef.current?.click()}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Upload size={18} />
+                  <span>Upload Custom Sound (max 5MB)</span>
+                </button>
               </div>
 
-              {useCustomParagraphSound && (
-                <div className="space-y-3 pl-8">
-                  <input
-                    ref={paragraphFileInputRef}
-                    type="file"
-                    accept="audio/*"
-                    onChange={handleParagraphFileUpload}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => paragraphFileInputRef.current?.click()}
-                    className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Upload size={18} />
-                    <span>Upload Paragraph Sound (max 5MB)</span>
-                  </button>
-                  {customParagraphSoundUrl && (
-                    <>
-                      <p className="text-gray-400 text-sm">{customParagraphSoundName}</p>
-                      <button
-                        onClick={handleTestParagraphAudio}
-                        className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                      >
-                        {testParagraphPlaying ? (
-                          <>
-                            <Square size={18} />
-                            <span>Stop Test</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play size={18} />
-                            <span>Test Sound</span>
-                          </>
-                        )}
-                      </button>
-                    </>
-                  )}
-                  <p className="text-gray-500 text-xs">
-                    Upload a sound that plays each time you begin a new paragraph.
-                  </p>
-                </div>
+              {useCustomParagraphSound && customParagraphSoundUrl && (
+                <button
+                  onClick={() => { setUseCustomParagraphSound(false); setCustomParagraphSoundUrl(''); setCustomParagraphSoundName(''); }}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset to Default</span>
+                </button>
               )}
             </div>
           </div>
@@ -641,60 +603,52 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             <p className="text-gray-500 text-sm mb-4">Plays when you reach your target writing pace</p>
 
             <div className="space-y-4">
-              <div className="flex items-center space-x-3">
+              <p className="text-gray-400 text-sm">
+                {useCustomTargetWpmSound && customTargetWpmSoundUrl ? customTargetWpmSoundName : 'Using default sound'}
+              </p>
+
+              <button
+                onClick={handleTestTargetWpmAudio}
+                className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+              >
+                {testTargetWpmPlaying ? (
+                  <>
+                    <Square size={18} />
+                    <span>Stop Test</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={18} />
+                    <span>Test Sound</span>
+                  </>
+                )}
+              </button>
+
+              <div>
                 <input
-                  type="checkbox"
-                  id="useCustomTargetWpmSound"
-                  checked={useCustomTargetWpmSound}
-                  onChange={(e) => setUseCustomTargetWpmSound(e.target.checked)}
-                  className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
+                  ref={targetWpmFileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleTargetWpmFileUpload}
+                  className="hidden"
                 />
-                <label htmlFor="useCustomTargetWpmSound" className="text-gray-300 cursor-pointer select-none">
-                  Enable target WPM achievement sound
-                </label>
+                <button
+                  onClick={() => targetWpmFileInputRef.current?.click()}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
+                >
+                  <Upload size={18} />
+                  <span>Upload Custom Sound (max 5MB)</span>
+                </button>
               </div>
 
-              {useCustomTargetWpmSound && (
-                <div className="space-y-3 pl-8">
-                  <input
-                    ref={targetWpmFileInputRef}
-                    type="file"
-                    accept="audio/*"
-                    onChange={handleTargetWpmFileUpload}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => targetWpmFileInputRef.current?.click()}
-                    className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                  >
-                    <Upload size={18} />
-                    <span>Upload Target WPM Sound (max 5MB)</span>
-                  </button>
-                  {customTargetWpmSoundUrl && (
-                    <>
-                      <p className="text-gray-400 text-sm">{customTargetWpmSoundName}</p>
-                      <button
-                        onClick={handleTestTargetWpmAudio}
-                        className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"
-                      >
-                        {testTargetWpmPlaying ? (
-                          <>
-                            <Square size={18} />
-                            <span>Stop Test</span>
-                          </>
-                        ) : (
-                          <>
-                            <Play size={18} />
-                            <span>Test Sound</span>
-                          </>
-                        )}
-                      </button>
-                    </>
-                  )}
-                  <p className="text-gray-500 text-xs">
-                    Upload a celebratory sound that plays when you hit your target WPM.
-                  </p>
-                </div>
+              {useCustomTargetWpmSound && customTargetWpmSoundUrl && (
+                <button
+                  onClick={() => { setUseCustomTargetWpmSound(false); setCustomTargetWpmSoundUrl(''); setCustomTargetWpmSoundName(''); }}
+                  className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset to Default</span>
+                </button>
               )}
             </div>
           </div>

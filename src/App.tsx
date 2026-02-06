@@ -55,21 +55,15 @@ export default function App() {
   async function loadAudioSettings() {
     try {
       const settings = await getUserSettings();
-      if (settings) {
-        if (settings.use_custom_audio && settings.custom_audio_url) {
-          audioManagerRef.current.setCustomAudio(settings.custom_audio_url, true);
-        }
-        audioManagerRef.current.setTypewriterEnabled(settings.typewriter_sound_enabled ?? true);
-        if (settings.use_custom_typewriter && settings.custom_typewriter_url) {
-          audioManagerRef.current.setCustomTypewriterSound(settings.custom_typewriter_url, true);
-        }
-        if (settings.use_custom_paragraph_sound && settings.custom_paragraph_sound_url) {
-          audioManagerRef.current.setCustomParagraphSound(settings.custom_paragraph_sound_url, true);
-        }
-        if (settings.use_custom_target_wpm_sound && settings.custom_target_wpm_sound_url) {
-          audioManagerRef.current.setCustomTargetWpmSound(settings.custom_target_wpm_sound_url, true);
-        }
+      const am = audioManagerRef.current;
 
+      am.setAlertSound(settings?.use_custom_audio && settings.custom_audio_url ? settings.custom_audio_url : undefined);
+      am.setTypewriterEnabled(settings?.typewriter_sound_enabled ?? true);
+      am.setTypewriterSound(settings?.use_custom_typewriter && settings.custom_typewriter_url ? settings.custom_typewriter_url : undefined);
+      am.setParagraphSound(settings?.use_custom_paragraph_sound && settings.custom_paragraph_sound_url ? settings.custom_paragraph_sound_url : undefined);
+      am.setTargetWpmSound(settings?.use_custom_target_wpm_sound && settings.custom_target_wpm_sound_url ? settings.custom_target_wpm_sound_url : undefined);
+
+      if (settings) {
         const minWpm = settings.default_minimum_wpm ?? 30;
         const tgtWpm = settings.target_wpm ?? 60;
         const noBs = settings.no_backspace_mode ?? false;
@@ -309,7 +303,7 @@ export default function App() {
   }
 
   function handleAudioChange(url: string, enabled: boolean) {
-    audioManagerRef.current.setCustomAudio(url, enabled);
+    audioManagerRef.current.setAlertSound(enabled && url ? url : undefined);
   }
 
   function handleTypewriterChange(enabled: boolean) {
@@ -317,15 +311,15 @@ export default function App() {
   }
 
   function handleCustomTypewriterChange(url: string, enabled: boolean) {
-    audioManagerRef.current.setCustomTypewriterSound(url, enabled);
+    audioManagerRef.current.setTypewriterSound(enabled && url ? url : undefined);
   }
 
   function handleParagraphSoundChange(url: string, enabled: boolean) {
-    audioManagerRef.current.setCustomParagraphSound(url, enabled);
+    audioManagerRef.current.setParagraphSound(enabled && url ? url : undefined);
   }
 
   function handleTargetWpmSoundChange(url: string, enabled: boolean) {
-    audioManagerRef.current.setCustomTargetWpmSound(url, enabled);
+    audioManagerRef.current.setTargetWpmSound(enabled && url ? url : undefined);
   }
 
   function handleSettingsBack() {
