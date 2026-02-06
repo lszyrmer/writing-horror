@@ -4,6 +4,7 @@ import SplashScreen, { SessionConfig } from './components/SplashScreen';
 import WritingCanvas from './components/WritingCanvas';
 import StatsBar from './components/StatsBar';
 import VelocityArc from './components/VelocityArc';
+import TypingRhythm from './components/TypingRhythm';
 import VictoryModal from './components/VictoryModal';
 import SessionHistory from './components/SessionHistory';
 import Settings from './components/Settings';
@@ -396,6 +397,9 @@ export default function App() {
               noBackspaceMode={noBackspaceMode}
               goalAchieved={goalAchieved}
             />
+            <div className="absolute bottom-4 left-4 w-[270px] opacity-80 hover:opacity-100 transition-opacity">
+              <TypingRhythm currentWPM={currentWPM} targetWPM={targetWPM} minimumWPM={minimumWPM} />
+            </div>
             <div className="absolute bottom-4 right-4 w-[220px] opacity-80 hover:opacity-100 transition-opacity">
               <VelocityArc currentWPM={currentWPM} targetWPM={targetWPM} />
             </div>
