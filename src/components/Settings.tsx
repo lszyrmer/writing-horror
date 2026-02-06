@@ -364,7 +364,11 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                 <input
                   type="number"
                   value={defaultMinWPM}
-                  onChange={(e) => setDefaultMinWPM(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    setDefaultMinWPM(val);
+                    if (targetWpm < val) setTargetWpm(val);
+                  }}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
                   min="1"
                 />
@@ -378,11 +382,16 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                 <input
                   type="number"
                   value={targetWpm}
-                  onChange={(e) => setTargetWpm(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 0;
+                    setTargetWpm(val < defaultMinWPM ? defaultMinWPM : val);
+                  }}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
-                  min="1"
+                  min={defaultMinWPM}
                 />
-                <p className="text-gray-500 text-sm mt-1">Plays a sound when you reach this pace</p>
+                <p className="text-gray-500 text-sm mt-1">
+                  Must be at least {defaultMinWPM} WPM (your minimum)
+                </p>
               </div>
 
               <div className="flex items-center space-x-3 pt-2">

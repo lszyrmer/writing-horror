@@ -183,6 +183,9 @@ export default function App() {
       }
       setTargetReached(true);
     } else {
+      if (targetWpmReachedRef.current) {
+        audioManagerRef.current.stopTargetWpmSound();
+      }
       targetWpmReachedRef.current = false;
       setTargetReached(false);
     }

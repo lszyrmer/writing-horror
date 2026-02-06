@@ -60,6 +60,12 @@ export class AudioManager {
     this.targetWpmAudio.play().catch(() => {});
   }
 
+  stopTargetWpmSound() {
+    if (!this.targetWpmAudio) return;
+    this.targetWpmAudio.pause();
+    this.targetWpmAudio.currentTime = 0;
+  }
+
   warmUp() {
     if (!this.audioContext) {
       try {
