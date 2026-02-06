@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import SplashScreen, { SessionConfig } from './components/SplashScreen';
 import WritingCanvas from './components/WritingCanvas';
 import StatsBar from './components/StatsBar';
+import VelocityArc from './components/VelocityArc';
 import VictoryModal from './components/VictoryModal';
 import SessionHistory from './components/SessionHistory';
 import Settings from './components/Settings';
@@ -388,13 +389,16 @@ export default function App() {
             timeGoalSeconds={config.timeGoalSeconds}
             onStop={handleStopSession}
           />
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
             <WritingCanvas
               text={text}
               onChange={handleTextChange}
               noBackspaceMode={noBackspaceMode}
               goalAchieved={goalAchieved}
             />
+            <div className="absolute bottom-4 right-4 w-[220px] opacity-80 hover:opacity-100 transition-opacity">
+              <VelocityArc currentWPM={currentWPM} targetWPM={targetWPM} />
+            </div>
           </div>
         </>
       )}
