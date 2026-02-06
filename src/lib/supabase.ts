@@ -29,6 +29,7 @@ export interface UserSettings {
   default_time_goal_seconds: number;
   default_minimum_wpm: number;
   no_backspace_mode: boolean;
+  target_wpm: number;
   custom_audio_url: string;
   use_custom_audio: boolean;
   typewriter_sound_enabled: boolean;
@@ -36,6 +37,8 @@ export interface UserSettings {
   custom_typewriter_url: string;
   use_custom_paragraph_sound: boolean;
   custom_paragraph_sound_url: string;
+  use_custom_target_wpm_sound: boolean;
+  custom_target_wpm_sound_url: string;
   updated_at?: string;
 }
 

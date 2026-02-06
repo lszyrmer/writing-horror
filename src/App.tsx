@@ -23,6 +23,10 @@ export default function App() {
   const [showVictory, setShowVictory] = useState(false);
   const [warningActive, setWarningActive] = useState(false);
 
+  const [minimumWPM, setMinimumWPM] = useState(30);
+  const [noBackspaceMode, setNoBackspaceMode] = useState(false);
+  const [targetWPM, setTargetWPM] = useState(60);
+
   const wpmCalculatorRef = useRef<WPMCalculator>(new WPMCalculator());
   const audioManagerRef = useRef<AudioManager>(new AudioManager());
   const startTimeRef = useRef<number>(0);
@@ -34,6 +38,10 @@ export default function App() {
   const belowThresholdTimeRef = useRef(0);
   const wordCountRef = useRef(0);
   const textRef = useRef('');
+  const minimumWPMRef = useRef(30);
+  const targetWPMRef = useRef(60);
+  const targetWpmReachedRef = useRef(false);
+  const noBackspaceModeRef = useRef(false);
 
   useEffect(() => {
     loadAudioSettings();
@@ -56,6 +64,19 @@ export default function App() {
         if (settings.use_custom_paragraph_sound && settings.custom_paragraph_sound_url) {
           audioManagerRef.current.setCustomParagraphSound(settings.custom_paragraph_sound_url, true);
         }
+        if (settings.use_custom_target_wpm_sound && settings.custom_target_wpm_sound_url) {
+          audioManagerRef.current.setCustomTargetWpmSound(settings.custom_target_wpm_sound_url, true);
+        }
+
+        const minWpm = settings.default_minimum_wpm ?? 30;
+        const tgtWpm = settings.target_wpm ?? 60;
+        const noBs = settings.no_backspace_mode ?? false;
+        setMinimumWPM(minWpm);
+        minimumWPMRef.current = minWpm;
+        setTargetWPM(tgtWpm);
+        targetWPMRef.current = tgtWpm;
+        setNoBackspaceMode(noBs);
+        noBackspaceModeRef.current = noBs;
       }
     } catch (error) {
       console.error('Error loading audio settings:', error);
@@ -86,6 +107,7 @@ export default function App() {
     setWarningActive(false);
     warningActiveRef.current = false;
     belowThresholdTimeRef.current = 0;
+    targetWpmReachedRef.current = false;
     wpmCalculatorRef.current.reset();
     startTimeRef.current = Date.now();
     setView('writing');
@@ -106,14 +128,13 @@ export default function App() {
   }
 
   function checkWarningState() {
-    const cfg = configRef.current;
-    if (!cfg) return;
+    if (!configRef.current) return;
 
     const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
     if (elapsed < 10) return;
 
     const wpm = wpmCalculatorRef.current.calculateRollingWPM();
-    const belowThreshold = wpm < cfg.minimumWPM;
+    const belowThreshold = wpm < minimumWPMRef.current;
 
     if (belowThreshold) {
       belowThresholdTimeRef.current += 0.5;
@@ -129,6 +150,13 @@ export default function App() {
         setWarningActive(false);
         audioManagerRef.current.stop();
       }
+    }
+
+    if (wpm >= targetWPMRef.current && !targetWpmReachedRef.current) {
+      targetWpmReachedRef.current = true;
+      audioManagerRef.current.playTargetWpmSound();
+    } else if (wpm < targetWPMRef.current) {
+      targetWpmReachedRef.current = false;
     }
   }
 
@@ -174,10 +202,10 @@ export default function App() {
           average_wpm: avgWPM,
           word_goal: cfg.wordGoal,
           time_goal_seconds: cfg.timeGoalSeconds,
-          minimum_wpm: cfg.minimumWPM,
+          minimum_wpm: minimumWPMRef.current,
           word_goal_achieved: true,
           time_goal_achieved: duration <= cfg.timeGoalSeconds,
-          no_backspace_mode: cfg.noBackspaceMode,
+          no_backspace_mode: noBackspaceModeRef.current,
         });
       } catch (error) {
         console.error('Error saving session:', error);
@@ -206,10 +234,10 @@ export default function App() {
           average_wpm: avgWPM,
           word_goal: cfg.wordGoal,
           time_goal_seconds: cfg.timeGoalSeconds,
-          minimum_wpm: cfg.minimumWPM,
+          minimum_wpm: minimumWPMRef.current,
           word_goal_achieved: wc >= cfg.wordGoal,
           time_goal_achieved: duration <= cfg.timeGoalSeconds,
-          no_backspace_mode: cfg.noBackspaceMode,
+          no_backspace_mode: noBackspaceModeRef.current,
         });
       } catch (error) {
         console.error('Error saving session:', error);
@@ -264,6 +292,15 @@ export default function App() {
     audioManagerRef.current.setCustomParagraphSound(url, enabled);
   }
 
+  function handleTargetWpmSoundChange(url: string, enabled: boolean) {
+    audioManagerRef.current.setCustomTargetWpmSound(url, enabled);
+  }
+
+  function handleSettingsBack() {
+    loadAudioSettings();
+    setView('splash');
+  }
+
   if (view === 'history') {
     return <SessionHistory onBack={handleBackToHome} />;
   }
@@ -271,11 +308,12 @@ export default function App() {
   if (view === 'settings') {
     return (
       <Settings
-        onBack={handleBackToHome}
+        onBack={handleSettingsBack}
         onAudioChange={handleAudioChange}
         onTypewriterChange={handleTypewriterChange}
         onCustomTypewriterChange={handleCustomTypewriterChange}
         onParagraphSoundChange={handleParagraphSoundChange}
+        onTargetWpmSoundChange={handleTargetWpmSoundChange}
       />
     );
   }
@@ -316,7 +354,7 @@ export default function App() {
             <WritingCanvas
               text={text}
               onChange={handleTextChange}
-              noBackspaceMode={config.noBackspaceMode}
+              noBackspaceMode={noBackspaceMode}
               goalAchieved={goalAchieved}
             />
           </div>

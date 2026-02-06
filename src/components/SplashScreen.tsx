@@ -11,15 +11,11 @@ interface SplashScreenProps {
 export interface SessionConfig {
   wordGoal: number;
   timeGoalSeconds: number;
-  minimumWPM: number;
-  noBackspaceMode: boolean;
 }
 
 export default function SplashScreen({ onStart, onViewHistory, onViewSettings }: SplashScreenProps) {
   const [wordGoal, setWordGoal] = useState(500);
   const [timeGoalMinutes, setTimeGoalMinutes] = useState(30);
-  const [minimumWPM, setMinimumWPM] = useState(30);
-  const [noBackspaceMode, setNoBackspaceMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,8 +28,6 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
       if (settings) {
         setWordGoal(settings.default_word_goal);
         setTimeGoalMinutes(Math.floor(settings.default_time_goal_seconds / 60));
-        setMinimumWPM(settings.default_minimum_wpm);
-        setNoBackspaceMode(settings.no_backspace_mode);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -43,7 +37,7 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
   }
 
   function handleStart() {
-    if (wordGoal < 1 || timeGoalMinutes < 1 || minimumWPM < 1) {
+    if (wordGoal < 1 || timeGoalMinutes < 1) {
       alert('Please enter valid goals');
       return;
     }
@@ -51,8 +45,6 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
     onStart({
       wordGoal,
       timeGoalSeconds: timeGoalMinutes * 60,
-      minimumWPM,
-      noBackspaceMode,
     });
   }
 
@@ -103,32 +95,6 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
               <p className="text-gray-500 text-sm mt-1">Target time - session won't end automatically</p>
             </div>
 
-            <div>
-              <label className="block text-gray-300 mb-2 text-sm font-medium">
-                Minimum WPM
-              </label>
-              <input
-                type="number"
-                value={minimumWPM}
-                onChange={(e) => setMinimumWPM(parseInt(e.target.value) || 0)}
-                className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
-                min="1"
-              />
-              <p className="text-gray-500 text-sm mt-1">Fall below this and face the consequences</p>
-            </div>
-
-            <div className="flex items-center space-x-3 pt-2">
-              <input
-                type="checkbox"
-                id="noBackspace"
-                checked={noBackspaceMode}
-                onChange={(e) => setNoBackspaceMode(e.target.checked)}
-                className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
-              />
-              <label htmlFor="noBackspace" className="text-gray-300 cursor-pointer select-none">
-                No Backspace Mode (disable editing)
-              </label>
-            </div>
           </div>
 
           <button

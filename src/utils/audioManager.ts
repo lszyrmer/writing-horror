@@ -9,6 +9,8 @@ export class AudioManager {
   private useCustomTypewriter = false;
   private paragraphAudio: HTMLAudioElement | null = null;
   private useCustomParagraphSound = false;
+  private targetWpmAudio: HTMLAudioElement | null = null;
+  private useCustomTargetWpmSound = false;
 
   setTypewriterEnabled(enabled: boolean) {
     this.typewriterEnabled = enabled;
@@ -57,6 +59,23 @@ export class AudioManager {
     if (!this.useCustomParagraphSound || !this.paragraphAudio) return;
     this.paragraphAudio.currentTime = 0;
     this.paragraphAudio.play().catch(() => {});
+  }
+
+  setCustomTargetWpmSound(url: string, enabled: boolean) {
+    this.useCustomTargetWpmSound = enabled && url.length > 0;
+    if (this.useCustomTargetWpmSound && url) {
+      this.targetWpmAudio = new Audio(url);
+      this.targetWpmAudio.volume = 0.6;
+      this.targetWpmAudio.load();
+    } else {
+      this.targetWpmAudio = null;
+    }
+  }
+
+  playTargetWpmSound() {
+    if (!this.useCustomTargetWpmSound || !this.targetWpmAudio) return;
+    this.targetWpmAudio.currentTime = 0;
+    this.targetWpmAudio.play().catch(() => {});
   }
 
   warmUp() {
@@ -188,5 +207,6 @@ export class AudioManager {
     this.customAudio = null;
     this.customTypewriterBuffer = null;
     this.paragraphAudio = null;
+    this.targetWpmAudio = null;
   }
 }
