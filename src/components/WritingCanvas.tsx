@@ -5,10 +5,9 @@ interface WritingCanvasProps {
   onChange: (text: string, isKeypress?: boolean) => void;
   noBackspaceMode: boolean;
   goalAchieved: boolean;
-  onParagraphBreak?: () => void;
 }
 
-export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAchieved, onParagraphBreak }: WritingCanvasProps) {
+export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAchieved }: WritingCanvasProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingKeypressRef = useRef(false);
 
@@ -29,10 +28,6 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
         e.preventDefault();
         return;
       }
-    }
-
-    if (e.key === 'Enter' && text.endsWith('\n') && onParagraphBreak) {
-      onParagraphBreak();
     }
 
     const isTypingKey = e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace';

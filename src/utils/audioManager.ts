@@ -7,7 +7,7 @@ export class AudioManager {
   private typewriterEnabled = true;
   private customTypewriterBuffer: AudioBuffer | null = null;
   private useCustomTypewriter = false;
-  private paragraphSoundUrl = '';
+  private paragraphAudio: HTMLAudioElement | null = null;
   private useCustomParagraphSound = false;
 
   setTypewriterEnabled(enabled: boolean) {
@@ -44,14 +44,19 @@ export class AudioManager {
 
   setCustomParagraphSound(url: string, enabled: boolean) {
     this.useCustomParagraphSound = enabled && url.length > 0;
-    this.paragraphSoundUrl = url || '';
+    if (this.useCustomParagraphSound && url) {
+      this.paragraphAudio = new Audio(url);
+      this.paragraphAudio.volume = 0.6;
+      this.paragraphAudio.load();
+    } else {
+      this.paragraphAudio = null;
+    }
   }
 
   playParagraphSound() {
-    if (!this.useCustomParagraphSound || !this.paragraphSoundUrl) return;
-    const audio = new Audio(this.paragraphSoundUrl);
-    audio.volume = 0.6;
-    audio.play().catch(() => {});
+    if (!this.useCustomParagraphSound || !this.paragraphAudio) return;
+    this.paragraphAudio.currentTime = 0;
+    this.paragraphAudio.play().catch(() => {});
   }
 
   warmUp() {
@@ -182,6 +187,6 @@ export class AudioManager {
     }
     this.customAudio = null;
     this.customTypewriterBuffer = null;
-    this.paragraphSoundUrl = '';
+    this.paragraphAudio = null;
   }
 }

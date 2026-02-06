@@ -69,7 +69,7 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
       <div className="max-w-2xl w-full">
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold mb-4 text-gray-100">Writing Horror</h1>
-          <p className="text-gray-400 text-lg">Distraction-free writing with negative reinforcement</p>
+          <p className="text-gray-400 text-lg">Distraction-free writing with reinforcement</p>
         </div>
 
         <div className="bg-dark-light border border-dark-lighter rounded-lg p-8 mb-6">

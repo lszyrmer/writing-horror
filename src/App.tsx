@@ -137,6 +137,11 @@ export default function App() {
       audioManagerRef.current.playTypewriterSound();
     }
 
+    const oldText = textRef.current;
+    if (isKeypress && newText.endsWith('\n\n') && !oldText.endsWith('\n\n')) {
+      audioManagerRef.current.playParagraphSound();
+    }
+
     setText(newText);
     textRef.current = newText;
     const words = countWords(newText);
@@ -259,10 +264,6 @@ export default function App() {
     audioManagerRef.current.setCustomParagraphSound(url, enabled);
   }
 
-  function handleParagraphBreak() {
-    audioManagerRef.current.playParagraphSound();
-  }
-
   if (view === 'history') {
     return <SessionHistory onBack={handleBackToHome} />;
   }
@@ -317,7 +318,6 @@ export default function App() {
               onChange={handleTextChange}
               noBackspaceMode={config.noBackspaceMode}
               goalAchieved={goalAchieved}
-              onParagraphBreak={handleParagraphBreak}
             />
           </div>
         </>
