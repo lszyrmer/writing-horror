@@ -22,6 +22,7 @@ export default function App() {
   const [goalAchieved, setGoalAchieved] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
   const [warningActive, setWarningActive] = useState(false);
+  const [targetReached, setTargetReached] = useState(false);
 
   const [minimumWPM, setMinimumWPM] = useState(30);
   const [noBackspaceMode, setNoBackspaceMode] = useState(false);
@@ -175,11 +176,15 @@ export default function App() {
       }
     }
 
-    if (wpm >= targetWPMRef.current && !targetWpmReachedRef.current) {
-      targetWpmReachedRef.current = true;
-      audioManagerRef.current.playTargetWpmSound();
-    } else if (wpm < targetWPMRef.current) {
+    if (wpm >= targetWPMRef.current) {
+      if (!targetWpmReachedRef.current) {
+        targetWpmReachedRef.current = true;
+        audioManagerRef.current.playTargetWpmSound();
+      }
+      setTargetReached(true);
+    } else {
       targetWpmReachedRef.current = false;
+      setTargetReached(false);
     }
   }
 
@@ -358,10 +363,14 @@ export default function App() {
     <motion.div
       className="h-screen flex flex-col overflow-hidden"
       animate={{
-        backgroundColor: warningActive ? ['#8B0000', '#5C0000', '#8B0000'] : '#121212'
+        backgroundColor: warningActive
+          ? ['#8B0000', '#5C0000', '#8B0000']
+          : targetReached
+            ? '#141f17'
+            : '#121212'
       }}
       transition={{
-        duration: warningActive ? 1.5 : 0.5,
+        duration: warningActive ? 1.5 : 0.8,
         repeat: warningActive ? Infinity : 0,
         ease: "easeInOut"
       }}
