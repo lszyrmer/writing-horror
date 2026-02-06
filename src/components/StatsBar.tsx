@@ -41,7 +41,7 @@ function getPaceStatus(
   }
 
   const timeRemainingMinutes = timeRemainingSeconds / 60;
-  const requiredWPM = Math.ceil(wordsRemaining / timeRemainingMinutes);
+  const requiredWPM = Math.round(wordsRemaining / timeRemainingMinutes);
 
   if (currentWPM === 0) {
     return {
