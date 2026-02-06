@@ -66,7 +66,7 @@ export class AudioManager {
     this.targetWpmAudio.currentTime = 0;
   }
 
-  warmUp() {
+  async warmUp() {
     if (!this.audioContext) {
       try {
         this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -75,11 +75,11 @@ export class AudioManager {
       }
     }
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      try { await this.audioContext.resume(); } catch { /* ignore */ }
     }
   }
 
-  playTypewriterSound() {
+  async playTypewriterSound() {
     if (!this.typewriterEnabled) return;
 
     if (!this.audioContext) {
@@ -91,7 +91,7 @@ export class AudioManager {
     }
 
     if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
+      try { await this.audioContext.resume(); } catch { return; }
     }
     if (this.audioContext.state !== 'running') return;
 
