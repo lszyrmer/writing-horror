@@ -216,7 +216,7 @@ export default function App() {
 
   async function handleGoalReached(finalWordCount?: number) {
     clearAllIntervals();
-    audioManagerRef.current.stop();
+    audioManagerRef.current.stopAll();
     setWarningActive(false);
     warningActiveRef.current = false;
 
@@ -248,7 +248,7 @@ export default function App() {
 
   const handleStopSession = useCallback(async () => {
     clearAllIntervals();
-    audioManagerRef.current.stop();
+    audioManagerRef.current.stopAll();
     setWarningActive(false);
     warningActiveRef.current = false;
 
@@ -297,7 +297,7 @@ export default function App() {
 
   function handleViewHistory() {
     clearAllIntervals();
-    audioManagerRef.current.stop();
+    audioManagerRef.current.stopAll();
     exitFullscreen();
     setView('history');
   }

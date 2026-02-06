@@ -195,6 +195,15 @@ export class AudioManager {
     }
   }
 
+  stopAll() {
+    this.stop();
+    this.stopTargetWpmSound();
+    if (this.paragraphAudio) {
+      this.paragraphAudio.pause();
+      this.paragraphAudio.currentTime = 0;
+    }
+  }
+
   cleanup() {
     this.stop();
     if (this.audioContext) {
