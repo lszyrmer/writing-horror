@@ -7,7 +7,7 @@ export class AudioManager {
   private typewriterEnabled = true;
   private customTypewriterBuffer: AudioBuffer | null = null;
   private useCustomTypewriter = false;
-  private customParagraphBuffer: AudioBuffer | null = null;
+  private paragraphSoundUrl = '';
   private useCustomParagraphSound = false;
 
   setTypewriterEnabled(enabled: boolean) {
@@ -42,41 +42,16 @@ export class AudioManager {
     }
   }
 
-  async setCustomParagraphSound(url: string, enabled: boolean) {
+  setCustomParagraphSound(url: string, enabled: boolean) {
     this.useCustomParagraphSound = enabled && url.length > 0;
-    if (!this.useCustomParagraphSound || !url) {
-      this.customParagraphBuffer = null;
-      return;
-    }
-
-    try {
-      const response = await fetch(url);
-      const arrayBuffer = await response.arrayBuffer();
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      this.customParagraphBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
-    } catch {
-      this.customParagraphBuffer = null;
-      this.useCustomParagraphSound = false;
-    }
+    this.paragraphSoundUrl = url || '';
   }
 
   playParagraphSound() {
-    if (!this.useCustomParagraphSound || !this.customParagraphBuffer || !this.audioContext) return;
-    if (this.audioContext.state === 'suspended') {
-      this.audioContext.resume();
-    }
-    if (this.audioContext.state !== 'running') return;
-
-    const ctx = this.audioContext;
-    const source = ctx.createBufferSource();
-    source.buffer = this.customParagraphBuffer;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.6, ctx.currentTime);
-    source.connect(gain);
-    gain.connect(ctx.destination);
-    source.start(ctx.currentTime);
+    if (!this.useCustomParagraphSound || !this.paragraphSoundUrl) return;
+    const audio = new Audio(this.paragraphSoundUrl);
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
   }
 
   warmUp() {
@@ -207,6 +182,6 @@ export class AudioManager {
     }
     this.customAudio = null;
     this.customTypewriterBuffer = null;
-    this.customParagraphBuffer = null;
+    this.paragraphSoundUrl = '';
   }
 }
