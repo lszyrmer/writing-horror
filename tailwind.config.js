@@ -18,9 +18,9 @@ export default {
           dark: '#5C0000',
         },
         success: {
-          DEFAULT: '#4ADE80',
-          light: '#86EFAC',
-          dark: '#22C55E',
+          DEFAULT: '#86EFAC',
+          light: '#BBF7D0',
+          dark: '#4ADE80',
         },
       },
     },
