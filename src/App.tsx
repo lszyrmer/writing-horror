@@ -397,10 +397,10 @@ export default function App() {
               noBackspaceMode={noBackspaceMode}
               goalAchieved={goalAchieved}
             />
-            <div className="absolute bottom-4 left-4 w-[270px] opacity-80 hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 w-[180px] sm:w-[270px] opacity-80 hover:opacity-100 transition-opacity hidden sm:block">
               <TypingRhythm currentWPM={currentWPM} targetWPM={targetWPM} minimumWPM={minimumWPM} />
             </div>
-            <div className="absolute bottom-4 right-4 w-[220px] opacity-80 hover:opacity-100 transition-opacity">
+            <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-[140px] sm:w-[220px] opacity-80 hover:opacity-100 transition-opacity hidden sm:block">
               <VelocityArc currentWPM={currentWPM} targetWPM={targetWPM} />
             </div>
           </div>

@@ -69,7 +69,7 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
       onPaste={handlePaste}
       onCopy={handleCopy}
       onCut={handleCut}
-      className="w-full h-full bg-transparent text-gray-100 text-lg leading-relaxed resize-none outline-none border-none p-8 font-mono"
+      className="w-full h-full bg-transparent text-gray-100 text-base sm:text-lg leading-relaxed resize-none outline-none border-none p-4 sm:p-8 font-mono"
       placeholder="Start typing..."
       spellCheck={false}
       autoCapitalize="off"

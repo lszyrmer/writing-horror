@@ -57,17 +57,17 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
   }
 
   return (
-    <div className="min-h-screen bg-dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-dark flex items-center justify-center px-4 py-8 sm:p-4">
       <div className="max-w-2xl w-full">
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold mb-4 text-gray-100">Writing Horror</h1>
-          <p className="text-gray-400 text-lg">Distraction-free writing with reinforcement</p>
+        <div className="text-center mb-8 sm:mb-12">
+          <h1 className="text-4xl sm:text-6xl font-bold mb-3 sm:mb-4 text-gray-100">Writing Horror</h1>
+          <p className="text-gray-400 text-base sm:text-lg">Distraction-free writing with reinforcement</p>
         </div>
 
-        <div className="bg-dark-light border border-dark-lighter rounded-lg p-8 mb-6">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-100">Session Configuration</h2>
+        <div className="bg-dark-light border border-dark-lighter rounded-lg p-5 sm:p-8 mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-5 sm:mb-6 text-gray-100">Session Configuration</h2>
 
-          <div className="space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             <div>
               <label className="block text-gray-300 mb-2 text-sm font-medium">
                 Word Goal
@@ -94,19 +94,18 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
               />
               <p className="text-gray-500 text-sm mt-1">Target time - session won't end automatically</p>
             </div>
-
           </div>
 
           <button
             onClick={handleStart}
-            className="w-full mt-8 bg-gray-100 hover:bg-white text-dark font-semibold py-4 rounded transition-colors flex items-center justify-center space-x-2"
+            className="w-full mt-6 sm:mt-8 bg-gray-100 hover:bg-white text-dark font-semibold py-3.5 sm:py-4 rounded transition-colors flex items-center justify-center space-x-2"
           >
             <Play size={20} />
             <span>Start Writing</span>
           </button>
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={onViewHistory}
             className="flex-1 bg-dark-light hover:bg-dark-lighter border border-dark-lighter text-gray-300 py-3 rounded transition-colors flex items-center justify-center space-x-2"

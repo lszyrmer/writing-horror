@@ -304,23 +304,23 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
   }
 
   return (
-    <div className="min-h-screen bg-dark p-6">
+    <div className="min-h-screen bg-dark px-4 py-5 sm:p-6">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <button
             onClick={onBack}
-            className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 transition-colors mb-6"
+            className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 transition-colors mb-4 sm:mb-6"
           >
             <ArrowLeft size={20} />
             <span>Back to Home</span>
           </button>
 
-          <h1 className="text-4xl font-bold text-gray-100 mb-2">Settings</h1>
-          <p className="text-gray-400">Configure your writing preferences</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-100 mb-2">Settings</h1>
+          <p className="text-gray-400 text-sm sm:text-base">Configure your writing preferences</p>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-4">Session Defaults</h2>
 
             <div className="space-y-4">
@@ -352,7 +352,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             </div>
           </div>
 
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-2">Writing Mode</h2>
             <p className="text-gray-500 text-sm mb-4">These settings apply to every session</p>
 
@@ -422,7 +422,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             </div>
           </div>
 
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-2">Alert Sound</h2>
             <p className="text-gray-500 text-sm mb-4">Plays when your WPM drops below the minimum</p>
 
@@ -477,7 +477,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             </div>
           </div>
 
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-4">Typewriter Sound</h2>
 
             <div className="space-y-4">
@@ -552,7 +552,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             </div>
           </div>
 
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-2">Paragraph Sound</h2>
             <p className="text-gray-500 text-sm mb-4">Plays when you start a new paragraph (double Enter)</p>
 
@@ -607,7 +607,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
             </div>
           </div>
 
-          <div className="bg-dark-light border border-dark-lighter rounded-lg p-6">
+          <div className="bg-dark-light border border-dark-lighter rounded-lg p-4 sm:p-6">
             <h2 className="text-xl font-semibold text-gray-100 mb-2">Target WPM Sound</h2>
             <p className="text-gray-500 text-sm mb-4">Plays when you reach your target writing pace</p>
 
@@ -665,7 +665,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-gray-100 hover:bg-white text-dark font-semibold py-4 rounded transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+            className="w-full bg-gray-100 hover:bg-white text-dark font-semibold py-3.5 sm:py-4 rounded transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
           >
             {saved ? (
               <>
