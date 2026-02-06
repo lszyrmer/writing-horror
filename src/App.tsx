@@ -26,6 +26,7 @@ export default function App() {
   const [minimumWPM, setMinimumWPM] = useState(30);
   const [noBackspaceMode, setNoBackspaceMode] = useState(false);
   const [targetWPM, setTargetWPM] = useState(60);
+  const [fullscreenEnabled, setFullscreenEnabled] = useState(true);
 
   const wpmCalculatorRef = useRef<WPMCalculator>(new WPMCalculator());
   const audioManagerRef = useRef<AudioManager>(new AudioManager());
@@ -42,6 +43,7 @@ export default function App() {
   const targetWPMRef = useRef(60);
   const targetWpmReachedRef = useRef(false);
   const noBackspaceModeRef = useRef(false);
+  const fullscreenEnabledRef = useRef(true);
 
   useEffect(() => {
     loadAudioSettings();
@@ -77,9 +79,35 @@ export default function App() {
         targetWPMRef.current = tgtWpm;
         setNoBackspaceMode(noBs);
         noBackspaceModeRef.current = noBs;
+        const fs = settings.fullscreen_enabled ?? true;
+        setFullscreenEnabled(fs);
+        fullscreenEnabledRef.current = fs;
       }
     } catch (error) {
       console.error('Error loading audio settings:', error);
+    }
+  }
+
+  function enterFullscreen() {
+    if (!fullscreenEnabledRef.current) return;
+    const el = document.documentElement;
+    const request = el.requestFullscreen
+      || (el as any).webkitRequestFullscreen
+      || (el as any).msRequestFullscreen;
+    if (request) {
+      request.call(el).catch(() => {});
+    }
+  }
+
+  function exitFullscreen() {
+    if (!document.fullscreenElement
+      && !(document as any).webkitFullscreenElement
+      && !(document as any).msFullscreenElement) return;
+    const exit = document.exitFullscreen
+      || (document as any).webkitExitFullscreen
+      || (document as any).msExitFullscreen;
+    if (exit) {
+      exit.call(document).catch(() => {});
     }
   }
 
@@ -111,6 +139,7 @@ export default function App() {
     wpmCalculatorRef.current.reset();
     startTimeRef.current = Date.now();
     setView('writing');
+    enterFullscreen();
 
     wpmIntervalRef.current = window.setInterval(() => {
       const wpm = wpmCalculatorRef.current.calculateRollingWPM();
@@ -244,6 +273,7 @@ export default function App() {
       }
     }
 
+    exitFullscreen();
     setView('splash');
     setText('');
     textRef.current = '';
@@ -258,6 +288,7 @@ export default function App() {
   }, []);
 
   function handleNewSession() {
+    exitFullscreen();
     setShowVictory(false);
     setView('splash');
   }
@@ -265,6 +296,7 @@ export default function App() {
   function handleViewHistory() {
     clearAllIntervals();
     audioManagerRef.current.stop();
+    exitFullscreen();
     setView('history');
   }
 

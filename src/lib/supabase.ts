@@ -39,6 +39,7 @@ export interface UserSettings {
   custom_paragraph_sound_url: string;
   use_custom_target_wpm_sound: boolean;
   custom_target_wpm_sound_url: string;
+  fullscreen_enabled: boolean;
   updated_at?: string;
 }
 

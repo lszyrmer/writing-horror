@@ -17,6 +17,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
   const [defaultMinWPM, setDefaultMinWPM] = useState(30);
   const [defaultNoBackspace, setDefaultNoBackspace] = useState(false);
   const [targetWpm, setTargetWpm] = useState(60);
+  const [fullscreenEnabled, setFullscreenEnabled] = useState(true);
   const [useCustomAudio, setUseCustomAudio] = useState(false);
   const [customAudioUrl, setCustomAudioUrl] = useState('');
   const [typewriterSoundEnabled, setTypewriterSoundEnabled] = useState(true);
@@ -71,6 +72,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
           setCustomParagraphSoundName('Custom sound uploaded');
         }
         setTargetWpm(settings.target_wpm ?? 60);
+        setFullscreenEnabled(settings.fullscreen_enabled ?? true);
         setUseCustomTargetWpmSound(settings.use_custom_target_wpm_sound ?? false);
         setCustomTargetWpmSoundUrl(settings.custom_target_wpm_sound_url ?? '');
         if (settings.custom_target_wpm_sound_url) {
@@ -93,6 +95,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
         default_minimum_wpm: defaultMinWPM,
         no_backspace_mode: defaultNoBackspace,
         target_wpm: targetWpm,
+        fullscreen_enabled: fullscreenEnabled,
         use_custom_audio: useCustomAudio,
         custom_audio_url: customAudioUrl,
         typewriter_sound_enabled: typewriterSoundEnabled,
@@ -403,6 +406,19 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                 />
                 <label htmlFor="defaultNoBackspace" className="text-gray-300 cursor-pointer select-none">
                   No Backspace Mode (disable editing)
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="fullscreenEnabled"
+                  checked={fullscreenEnabled}
+                  onChange={(e) => setFullscreenEnabled(e.target.checked)}
+                  className="w-5 h-5 bg-dark border border-dark-lighter rounded cursor-pointer"
+                />
+                <label htmlFor="fullscreenEnabled" className="text-gray-300 cursor-pointer select-none">
+                  Enter fullscreen during sessions
                 </label>
               </div>
             </div>
