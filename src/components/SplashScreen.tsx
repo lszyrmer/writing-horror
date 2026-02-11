@@ -14,8 +14,8 @@ export interface SessionConfig {
 }
 
 export default function SplashScreen({ onStart, onViewHistory, onViewSettings }: SplashScreenProps) {
-  const [wordGoal, setWordGoal] = useState(500);
-  const [timeGoalMinutes, setTimeGoalMinutes] = useState(30);
+  const [wordGoal, setWordGoal] = useState(1000);
+  const [timeGoalMinutes, setTimeGoalMinutes] = useState(20);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
