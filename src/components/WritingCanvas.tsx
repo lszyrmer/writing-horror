@@ -74,13 +74,14 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
       onPaste={handlePaste}
       onCopy={handleCopy}
       onCut={handleCut}
-      className="w-full h-full bg-transparent text-gray-100 text-base sm:text-lg leading-relaxed resize-none outline-none border-none p-4 sm:p-8 font-mono"
+      className="w-full h-full bg-transparent text-gray-100 text-base sm:text-lg leading-relaxed resize-none outline-none border-none pl-4 sm:pl-8 pr-6 sm:pr-10 py-4 sm:py-8 font-mono"
       placeholder="Start typing..."
       spellCheck={false}
       autoCapitalize="off"
       autoCorrect="off"
       style={{
         caretColor: '#fff',
+        scrollbarGutter: 'stable',
       }}
     />
   );

@@ -390,7 +390,7 @@ export default function App() {
             timeGoalSeconds={config.timeGoalSeconds}
             onStop={handleStopSession}
           />
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative" style={{ scrollbarGutter: 'stable' }}>
             <WritingCanvas
               text={text}
               onChange={handleTextChange}
