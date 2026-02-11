@@ -390,7 +390,7 @@ export default function App() {
             timeGoalSeconds={config.timeGoalSeconds}
             onStop={handleStopSession}
           />
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-hidden relative pb-20 sm:pb-28">
             <WritingCanvas
               text={text}
               onChange={handleTextChange}
