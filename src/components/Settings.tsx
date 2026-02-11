@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, Square, Save, CheckCircle, RotateCcw } from 'lucide-react';
 import { getUserSettings, saveUserSettings, saveCustomAudio } from '../lib/supabase';
 import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
+import { sanitizeNumericInput } from '../utils/numericInput';
 
 interface SettingsProps {
   onBack: () => void;
@@ -331,9 +332,17 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                 <input
                   type="number"
                   value={defaultWordGoal}
-                  onChange={(e) => setDefaultWordGoal(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/^0+/, '') || '1';
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1) {
+                      setDefaultWordGoal(parsed);
+                    }
+                  }}
+                  onBlur={(e) => setDefaultWordGoal(sanitizeNumericInput(e.target.value, 1, 100000))}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
                   min="1"
+                  max="100000"
                 />
               </div>
 
@@ -344,9 +353,17 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                 <input
                   type="number"
                   value={defaultTimeGoal}
-                  onChange={(e) => setDefaultTimeGoal(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/^0+/, '') || '1';
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1) {
+                      setDefaultTimeGoal(parsed);
+                    }
+                  }}
+                  onBlur={(e) => setDefaultTimeGoal(sanitizeNumericInput(e.target.value, 1, 1440))}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
                   min="1"
+                  max="1440"
                 />
               </div>
             </div>
@@ -365,12 +382,21 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                   type="number"
                   value={defaultMinWPM}
                   onChange={(e) => {
-                    const val = parseInt(e.target.value) || 0;
-                    setDefaultMinWPM(val);
-                    if (targetWpm < val) setTargetWpm(val);
+                    const value = e.target.value.replace(/^0+/, '') || '1';
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 300) {
+                      setDefaultMinWPM(parsed);
+                      if (targetWpm < parsed) setTargetWpm(parsed);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const sanitized = sanitizeNumericInput(e.target.value, 1, 300);
+                    setDefaultMinWPM(sanitized);
+                    if (targetWpm < sanitized) setTargetWpm(sanitized);
                   }}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
                   min="1"
+                  max="300"
                 />
                 <p className="text-gray-500 text-sm mt-1">Fall below this and face the consequences</p>
               </div>
@@ -383,11 +409,19 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                   type="number"
                   value={targetWpm}
                   onChange={(e) => {
-                    const val = parseInt(e.target.value) || 0;
-                    setTargetWpm(val < defaultMinWPM ? defaultMinWPM : val);
+                    const value = e.target.value.replace(/^0+/, '') || String(defaultMinWPM);
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= defaultMinWPM && parsed <= 300) {
+                      setTargetWpm(parsed);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const sanitized = sanitizeNumericInput(e.target.value, defaultMinWPM, 300);
+                    setTargetWpm(sanitized);
                   }}
                   className="w-full bg-dark border border-dark-lighter rounded px-4 py-3 text-gray-100 focus:outline-none focus:border-gray-500"
                   min={defaultMinWPM}
+                  max="300"
                 />
                 <p className="text-gray-500 text-sm mt-1">
                   Must be at least {defaultMinWPM} WPM (your minimum)
