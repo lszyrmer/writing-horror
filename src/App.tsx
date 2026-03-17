@@ -277,6 +277,7 @@ export default function App() {
       }
     }
 
+    setGoalAchieved(true);
     exitFullscreen();
     setView('splash');
     setText('');
