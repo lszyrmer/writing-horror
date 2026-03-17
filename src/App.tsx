@@ -275,21 +275,22 @@ export default function App() {
       } catch (error) {
         console.error('Error saving session:', error);
       }
-    }
 
-    setGoalAchieved(true);
-    exitFullscreen();
-    setView('splash');
-    setText('');
-    textRef.current = '';
-    setWordCount(0);
-    wordCountRef.current = 0;
-    setCurrentWPM(0);
-    setElapsedSeconds(0);
-    setGoalAchieved(false);
-    setShowVictory(false);
-    setConfig(null);
-    configRef.current = null;
+      setShowVictory(true);
+    } else {
+      exitFullscreen();
+      setView('splash');
+      setText('');
+      textRef.current = '';
+      setWordCount(0);
+      wordCountRef.current = 0;
+      setCurrentWPM(0);
+      setElapsedSeconds(0);
+      setGoalAchieved(false);
+      setShowVictory(false);
+      setConfig(null);
+      configRef.current = null;
+    }
   }, []);
 
   function handleNewSession() {
