@@ -25,6 +25,7 @@ export default function VictoryModal({
 }: VictoryModalProps) {
   const [copied, setCopied] = useState(false);
 
+  const wordGoalAchieved = wordCount >= wordGoal;
   const timeGoalAchieved = durationSeconds <= timeGoalSeconds;
 
   function formatTime(seconds: number): string {
@@ -52,17 +53,26 @@ export default function VictoryModal({
       >
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex justify-center mb-3 sm:mb-4">
-            <Trophy size={48} className="text-success sm:w-16 sm:h-16" />
+            <Trophy size={48} className={`${wordGoalAchieved ? 'text-success' : 'text-gray-400'} sm:w-16 sm:h-16`} />
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-100 mb-2">Success!</h2>
-          <p className="text-gray-400 text-base sm:text-lg">You've reached your writing goal</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-100 mb-2">
+            {wordGoalAchieved ? 'Success!' : 'Session Complete'}
+          </h2>
+          <p className="text-gray-400 text-base sm:text-lg">
+            {wordGoalAchieved
+              ? "You've reached your writing goal"
+              : 'Keep going—every word counts'}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-dark border border-dark-lighter rounded-lg p-3 sm:p-4 text-center">
             <div className="text-gray-400 text-xs sm:text-sm mb-1">Words Written</div>
             <div className="text-2xl sm:text-3xl font-bold text-gray-100">{wordCount}</div>
-            <div className="text-gray-500 text-xs sm:text-sm mt-1">Goal: {wordGoal}</div>
+            <div className={`text-xs sm:text-sm mt-1 ${wordGoalAchieved ? 'text-success' : 'text-gray-500'}`}>
+              Goal: {wordGoal}
+              {wordGoalAchieved && ' ✓'}
+            </div>
           </div>
 
           <div className="bg-dark border border-dark-lighter rounded-lg p-3 sm:p-4 text-center">
