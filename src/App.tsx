@@ -392,18 +392,22 @@ export default function App() {
             timeGoalSeconds={config.timeGoalSeconds}
             onStop={handleStopSession}
           />
-          <div className="flex-1 overflow-hidden relative">
-            <WritingCanvas
-              text={text}
-              onChange={handleTextChange}
-              noBackspaceMode={noBackspaceMode}
-              goalAchieved={goalAchieved}
-            />
-            <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 w-[180px] sm:w-[270px] opacity-80 hover:opacity-100 transition-opacity hidden sm:block">
-              <TypingRhythm currentWPM={currentWPM} targetWPM={targetWPM} minimumWPM={minimumWPM} />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-hidden">
+              <WritingCanvas
+                text={text}
+                onChange={handleTextChange}
+                noBackspaceMode={noBackspaceMode}
+                goalAchieved={goalAchieved}
+              />
             </div>
-            <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 w-[140px] sm:w-[220px] opacity-80 hover:opacity-100 transition-opacity hidden sm:block">
-              <VelocityArc currentWPM={currentWPM} targetWPM={targetWPM} />
+            <div className="hidden sm:flex items-end justify-between px-4 pb-4 h-[180px] shrink-0 pointer-events-none">
+              <div className="w-[270px] opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
+                <TypingRhythm currentWPM={currentWPM} targetWPM={targetWPM} minimumWPM={minimumWPM} />
+              </div>
+              <div className="w-[220px] opacity-80 hover:opacity-100 transition-opacity pointer-events-auto">
+                <VelocityArc currentWPM={currentWPM} targetWPM={targetWPM} />
+              </div>
             </div>
           </div>
         </>
