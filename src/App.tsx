@@ -8,7 +8,7 @@ import TypingRhythm from './components/TypingRhythm';
 import VictoryModal from './components/VictoryModal';
 import SessionHistory from './components/SessionHistory';
 import Settings from './components/Settings';
-import { WPMCalculator, countWords } from './utils/wpmCalculator';
+import { WPMCalculator, countWords, countChars, SAMPLE_INTERVAL_MS } from './utils/wpmCalculator';
 import { AudioManager } from './utils/audioManager';
 import { saveSession, getUserSettings } from './lib/supabase';
 
@@ -35,8 +35,10 @@ export default function App() {
   const audioManagerRef = useRef<AudioManager>(new AudioManager());
   const startTimeRef = useRef<number>(0);
   const wpmIntervalRef = useRef<number | null>(null);
+  const wpmSampleIntervalRef = useRef<number | null>(null);
   const timerIntervalRef = useRef<number | null>(null);
   const warningCheckRef = useRef<number | null>(null);
+  const charCountRef = useRef(0);
   const warningActiveRef = useRef(false);
   const configRef = useRef<SessionConfig | null>(null);
   const belowThresholdTimeRef = useRef(0);
@@ -110,9 +112,11 @@ export default function App() {
 
   function clearAllIntervals() {
     if (wpmIntervalRef.current) clearInterval(wpmIntervalRef.current);
+    if (wpmSampleIntervalRef.current) clearInterval(wpmSampleIntervalRef.current);
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     if (warningCheckRef.current) clearInterval(warningCheckRef.current);
     wpmIntervalRef.current = null;
+    wpmSampleIntervalRef.current = null;
     timerIntervalRef.current = null;
     warningCheckRef.current = null;
   }
@@ -133,15 +137,20 @@ export default function App() {
     warningActiveRef.current = false;
     belowThresholdTimeRef.current = 0;
     targetWpmReachedRef.current = false;
+    charCountRef.current = 0;
     wpmCalculatorRef.current.reset();
     startTimeRef.current = Date.now();
     setView('writing');
     enterFullscreen();
 
+    wpmSampleIntervalRef.current = window.setInterval(() => {
+      wpmCalculatorRef.current.recordSample(charCountRef.current);
+    }, SAMPLE_INTERVAL_MS);
+
     wpmIntervalRef.current = window.setInterval(() => {
       const wpm = wpmCalculatorRef.current.calculateRollingWPM();
       setCurrentWPM(wpm);
-    }, 2000);
+    }, 500);
 
     timerIntervalRef.current = window.setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
@@ -208,7 +217,7 @@ export default function App() {
     const words = countWords(newText);
     setWordCount(words);
     wordCountRef.current = words;
-    wpmCalculatorRef.current.addEntry(words);
+    charCountRef.current = countChars(newText);
 
     if (configRef.current && words >= configRef.current.wordGoal && !goalAchieved) {
       setGoalAchieved(true);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { WPMCalculator, countWords } from '../utils/wpmCalculator';
+import { WPMCalculator, countWords, countChars } from '../utils/wpmCalculator';
 
 describe('countWords', () => {
   it('returns 0 for empty string', () => {
@@ -43,6 +43,16 @@ describe('countWords', () => {
   });
 });
 
+describe('countChars', () => {
+  it('returns 0 for empty string', () => {
+    expect(countChars('')).toBe(0);
+  });
+
+  it('counts characters including spaces', () => {
+    expect(countChars('hello world')).toBe(11);
+  });
+});
+
 describe('WPMCalculator', () => {
   let calculator: WPMCalculator;
   let now: number;
@@ -59,98 +69,82 @@ describe('WPMCalculator', () => {
   });
 
   describe('calculateRollingWPM', () => {
-    it('returns 0 when no entries exist', () => {
+    it('returns 0 when no samples exist', () => {
       expect(calculator.calculateRollingWPM()).toBe(0);
     });
 
-    it('returns 0 when only one entry exists', () => {
-      calculator.addEntry(10);
+    it('returns 0 when only one sample exists', () => {
+      calculator.recordSample(50);
       expect(calculator.calculateRollingWPM()).toBe(0);
     });
 
-    it('calculates WPM correctly with two entries', () => {
-      calculator.addEntry(0);
-      vi.setSystemTime(now + 3000);
-      calculator.addEntry(10);
-
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBe(200);
+    it('calculates WPM: 100 chars over 20 seconds = 60 WPM', () => {
+      calculator.recordSample(0);
+      vi.setSystemTime(now + 20000);
+      calculator.recordSample(100);
+      // 100 chars / 5 chars-per-word / (20/60 min) = 60 WPM
+      expect(calculator.calculateRollingWPM()).toBe(60);
     });
 
-    it('calculates WPM correctly over a 5-second window', () => {
-      calculator.addEntry(0);
-      vi.setSystemTime(now + 5000);
-      calculator.addEntry(25);
-
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBe(300);
+    it('calculates WPM: 500 chars over 10 seconds = 600 WPM', () => {
+      calculator.recordSample(0);
+      vi.setSystemTime(now + 10000);
+      calculator.recordSample(500);
+      // 500 / 5 / (10/60 min) = 600 WPM
+      expect(calculator.calculateRollingWPM()).toBe(600);
     });
 
-    it('returns 0 when last entry is more than 5 seconds ago (user paused)', () => {
-      calculator.addEntry(0);
+    it('returns 0 when last sample is more than 5 seconds ago (user paused)', () => {
+      calculator.recordSample(0);
       vi.setSystemTime(now + 2000);
-      calculator.addEntry(20);
+      calculator.recordSample(100);
       vi.setSystemTime(now + 8000);
 
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBe(0);
+      expect(calculator.calculateRollingWPM()).toBe(0);
     });
 
-    it('cleans entries older than 10 seconds', () => {
-      calculator.addEntry(0);
-      vi.setSystemTime(now + 5000);
-      calculator.addEntry(30);
-      vi.setSystemTime(now + 11000);
-      calculator.addEntry(40);
+    it('prunes samples older than 30 seconds', () => {
+      calculator.recordSample(0);
+      vi.setSystemTime(now + 15000);
+      calculator.recordSample(150);
+      vi.setSystemTime(now + 31000);
+      calculator.recordSample(200);
 
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBeGreaterThan(0);
+      // oldest (t=0) is pruned; only last two samples remain
+      expect(calculator.calculateRollingWPM()).toBeGreaterThan(0);
     });
 
-    it('returns 0 when word count difference is zero', () => {
-      calculator.addEntry(100);
+    it('returns 0 when char count has not increased', () => {
+      calculator.recordSample(100);
       vi.setSystemTime(now + 3000);
-      calculator.addEntry(100);
+      calculator.recordSample(100);
 
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBe(0);
+      expect(calculator.calculateRollingWPM()).toBe(0);
     });
 
-    it('returns non-negative WPM', () => {
-      calculator.addEntry(50);
+    it('returns 0 when char count decreases (net deletion)', () => {
+      calculator.recordSample(100);
       vi.setSystemTime(now + 3000);
-      calculator.addEntry(10);
+      calculator.recordSample(50);
 
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBeGreaterThanOrEqual(0);
+      expect(calculator.calculateRollingWPM()).toBe(0);
     });
 
     it('returns a rounded integer', () => {
-      calculator.addEntry(0);
+      calculator.recordSample(0);
       vi.setSystemTime(now + 7000);
-      calculator.addEntry(13);
+      calculator.recordSample(65);
 
       const wpm = calculator.calculateRollingWPM();
       expect(Number.isInteger(wpm)).toBe(true);
     });
-
-    it('uses only entries within the 10-second rolling window', () => {
-      calculator.addEntry(0);
-      vi.setSystemTime(now + 9500);
-      calculator.addEntry(50);
-      vi.setSystemTime(now + 10500);
-      calculator.addEntry(60);
-
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBeGreaterThan(0);
-    });
   });
 
   describe('reset', () => {
-    it('clears all entries', () => {
-      calculator.addEntry(0);
+    it('clears all samples', () => {
+      calculator.recordSample(0);
       vi.setSystemTime(now + 3000);
-      calculator.addEntry(20);
+      calculator.recordSample(100);
 
       calculator.reset();
 
@@ -158,18 +152,18 @@ describe('WPMCalculator', () => {
     });
 
     it('allows new calculations after reset', () => {
-      calculator.addEntry(0);
+      calculator.recordSample(0);
       vi.setSystemTime(now + 3000);
-      calculator.addEntry(20);
+      calculator.recordSample(100);
       calculator.reset();
 
       vi.setSystemTime(now + 4000);
-      calculator.addEntry(0);
-      vi.setSystemTime(now + 7000);
-      calculator.addEntry(10);
+      calculator.recordSample(0);
+      vi.setSystemTime(now + 24000);
+      calculator.recordSample(100);
 
-      const wpm = calculator.calculateRollingWPM();
-      expect(wpm).toBe(200);
+      // 100 chars / 5 / (20/60 min) = 60 WPM
+      expect(calculator.calculateRollingWPM()).toBe(60);
     });
   });
 });

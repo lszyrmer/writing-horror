@@ -293,7 +293,7 @@ describe('WPM Rolling Window Integration', () => {
 
   it('WPM is 0 when only one data point exists', () => {
     const calculator = new WPMCalculator();
-    calculator.addEntry(10);
+    calculator.recordSample(50);
     expect(calculator.calculateRollingWPM()).toBe(0);
   });
 
