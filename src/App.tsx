@@ -49,6 +49,7 @@ export default function App() {
   const targetWpmReachedRef = useRef(false);
   const noBackspaceModeRef = useRef(false);
   const fullscreenEnabledRef = useRef(true);
+  const goalAchievedRef = useRef(false);
 
   useEffect(() => {
     loadAudioSettings();
@@ -137,6 +138,7 @@ export default function App() {
     warningActiveRef.current = false;
     belowThresholdTimeRef.current = 0;
     targetWpmReachedRef.current = false;
+    goalAchievedRef.current = false;
     charCountRef.current = 0;
     wpmCalculatorRef.current.reset();
     startTimeRef.current = Date.now();
@@ -219,42 +221,43 @@ export default function App() {
     wordCountRef.current = words;
     charCountRef.current = countChars(newText);
 
-    if (configRef.current && words >= configRef.current.wordGoal && !goalAchieved) {
+    if (configRef.current && words >= configRef.current.wordGoal && !goalAchievedRef.current) {
+      goalAchievedRef.current = true;
       setGoalAchieved(true);
       handleGoalReached();
     }
   }
 
-  async function handleGoalReached() {
+  function handleGoalReached() {
     clearAllIntervals();
     audioManagerRef.current.stopAll();
     setWarningActive(false);
     warningActiveRef.current = false;
+    setShowVictory(true);
+  }
 
+  async function saveCurrentSession(wordGoalAchieved: boolean) {
+    const cfg = configRef.current;
+    if (!cfg) return;
     const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
     const wc = wordCountRef.current;
+    if (wc === 0) return;
     const avgWPM = duration > 0 ? Math.round((wc / duration) * 60) : 0;
-
-    const cfg = configRef.current;
-    if (cfg) {
-      try {
-        await saveSession({
-          word_count: wc,
-          duration_seconds: duration,
-          average_wpm: avgWPM,
-          word_goal: cfg.wordGoal,
-          time_goal_seconds: cfg.timeGoalSeconds,
-          minimum_wpm: minimumWPMRef.current,
-          word_goal_achieved: true,
-          time_goal_achieved: duration <= cfg.timeGoalSeconds,
-          no_backspace_mode: noBackspaceModeRef.current,
-        });
-      } catch (error) {
-        console.error('Error saving session:', error);
-      }
+    try {
+      await saveSession({
+        word_count: wc,
+        duration_seconds: duration,
+        average_wpm: avgWPM,
+        word_goal: cfg.wordGoal,
+        time_goal_seconds: cfg.timeGoalSeconds,
+        minimum_wpm: minimumWPMRef.current,
+        word_goal_achieved: wordGoalAchieved,
+        time_goal_achieved: duration <= cfg.timeGoalSeconds,
+        no_backspace_mode: noBackspaceModeRef.current,
+      });
+    } catch (error) {
+      console.error('Error saving session:', error);
     }
-
-    setShowVictory(true);
   }
 
   const handleStopSession = useCallback(async () => {
@@ -263,28 +266,11 @@ export default function App() {
     setWarningActive(false);
     warningActiveRef.current = false;
 
-    const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
     const wc = wordCountRef.current;
-    const avgWPM = duration > 0 ? Math.round((wc / duration) * 60) : 0;
-
     const cfg = configRef.current;
-    if (cfg && wc > 0) {
-      try {
-        await saveSession({
-          word_count: wc,
-          duration_seconds: duration,
-          average_wpm: avgWPM,
-          word_goal: cfg.wordGoal,
-          time_goal_seconds: cfg.timeGoalSeconds,
-          minimum_wpm: minimumWPMRef.current,
-          word_goal_achieved: wc >= cfg.wordGoal,
-          time_goal_achieved: duration <= cfg.timeGoalSeconds,
-          no_backspace_mode: noBackspaceModeRef.current,
-        });
-      } catch (error) {
-        console.error('Error saving session:', error);
-      }
 
+    if (cfg && wc > 0) {
+      await saveCurrentSession(wc >= cfg.wordGoal);
       setShowVictory(true);
     } else {
       exitFullscreen();
@@ -296,19 +282,24 @@ export default function App() {
       setCurrentWPM(0);
       setElapsedSeconds(0);
       setGoalAchieved(false);
+      goalAchievedRef.current = false;
       setShowVictory(false);
       setConfig(null);
       configRef.current = null;
     }
   }, []);
 
-  function handleNewSession() {
+  async function handleNewSession() {
+    await saveCurrentSession(goalAchievedRef.current);
     exitFullscreen();
     setShowVictory(false);
     setView('splash');
   }
 
-  function handleViewHistory() {
+  async function handleViewHistory() {
+    if (showVictory) {
+      await saveCurrentSession(goalAchievedRef.current);
+    }
     clearAllIntervals();
     audioManagerRef.current.stopAll();
     exitFullscreen();
