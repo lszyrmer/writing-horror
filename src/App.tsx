@@ -221,18 +221,18 @@ export default function App() {
 
     if (configRef.current && words >= configRef.current.wordGoal && !goalAchieved) {
       setGoalAchieved(true);
-      handleGoalReached(words);
+      handleGoalReached();
     }
   }
 
-  async function handleGoalReached(finalWordCount?: number) {
+  async function handleGoalReached() {
     clearAllIntervals();
     audioManagerRef.current.stopAll();
     setWarningActive(false);
     warningActiveRef.current = false;
 
     const duration = Math.floor((Date.now() - startTimeRef.current) / 1000);
-    const wc = finalWordCount ?? wordCountRef.current;
+    const wc = wordCountRef.current;
     const avgWPM = duration > 0 ? Math.round((wc / duration) * 60) : 0;
 
     const cfg = configRef.current;
