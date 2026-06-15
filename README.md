@@ -61,5 +61,3 @@ That's it. No outlines, no templates, no organizational features. Just a blank p
 Most writing apps try to make writing *pleasant*. Writing Horror takes the opposite approach: it makes *not writing* unpleasant. The idea is simple -- if you sit down and commit to a session, the app won't let you zone out, switch tabs, or stare at the cursor. You either write or you deal with the alarm.
 
 This isn't for every writing session. It's for the sessions where you need to get words out and nothing else has worked.
-
-<!-- no-mistakes gate smoke test — throwaway, safe to revert -->
