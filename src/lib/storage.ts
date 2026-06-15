@@ -162,16 +162,28 @@ type PersistedSettings = Omit<
   'custom_audio_url' | 'custom_typewriter_url' | 'custom_paragraph_sound_url' | 'custom_target_wpm_sound_url'
 >;
 
-export async function getUserSettings(): Promise<UserSettings | null> {
+function readPersistedSettings(): Partial<PersistedSettings> | null {
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) return null;
-
-  let stored: Partial<PersistedSettings>;
   try {
-    stored = JSON.parse(raw);
+    return JSON.parse(raw);
   } catch {
     return null;
   }
+}
+
+// Object URLs handed out by the previous getUserSettings call, revoked before
+// the next batch is minted so repeated reads don't accumulate blob URLs.
+let issuedAudioUrls: string[] = [];
+
+export async function getUserSettings(): Promise<UserSettings | null> {
+  const stored = readPersistedSettings();
+  if (!stored) return null;
+
+  for (const url of issuedAudioUrls) {
+    URL.revokeObjectURL(url);
+  }
+  issuedAudioUrls = [];
 
   const settings = {
     custom_audio_url: '',
@@ -186,7 +198,9 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     (Object.keys(SOUND_URL_FIELD) as SoundType[]).map(async (type) => {
       const blob = await getAudioBlob(type);
       if (blob) {
-        (settings[SOUND_URL_FIELD[type]] as string) = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        issuedAudioUrls.push(url);
+        (settings[SOUND_URL_FIELD[type]] as string) = url;
       }
     }),
   );
@@ -195,7 +209,7 @@ export async function getUserSettings(): Promise<UserSettings | null> {
 }
 
 export async function saveUserSettings(partial: Partial<UserSettings>): Promise<UserSettings> {
-  const existing = (await getUserSettings()) ?? ({} as UserSettings);
+  const existing = readPersistedSettings() ?? {};
   const merged = { ...existing, ...partial } as UserSettings;
 
   // Strip the transient object-URL fields before persisting.
