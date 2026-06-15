@@ -6,6 +6,7 @@ import {
   saveUserSettings,
   saveCustomAudioBlob,
   deleteCustomAudioBlob,
+  getCustomAudioUrls,
   _resetForTests,
   WritingSession,
 } from '../lib/storage';
@@ -73,18 +74,25 @@ describe('settings', () => {
 });
 
 describe('custom audio blobs', () => {
-  it('rehydrates a stored blob as an object URL on read', async () => {
+  it('rehydrates a stored blob as an object URL via getCustomAudioUrls', async () => {
+    await saveUserSettings({ use_custom_audio: true });
+    await saveCustomAudioBlob('alert', new Blob(['x'], { type: 'audio/mpeg' }));
+    const urls = await getCustomAudioUrls();
+    expect(urls.custom_audio_url).toMatch(/^blob:/);
+  });
+
+  it('does not mint object URLs from getUserSettings', async () => {
     await saveUserSettings({ use_custom_audio: true });
     await saveCustomAudioBlob('alert', new Blob(['x'], { type: 'audio/mpeg' }));
     const settings = await getUserSettings();
-    expect(settings?.custom_audio_url).toMatch(/^blob:/);
+    expect(settings?.custom_audio_url).toBe('');
   });
 
   it('clears the object URL after the blob is deleted', async () => {
     await saveUserSettings({ use_custom_audio: true });
     await saveCustomAudioBlob('alert', new Blob(['x'], { type: 'audio/mpeg' }));
     await deleteCustomAudioBlob('alert');
-    const settings = await getUserSettings();
-    expect(settings?.custom_audio_url).toBe('');
+    const urls = await getCustomAudioUrls();
+    expect(urls.custom_audio_url).toBe('');
   });
 });
