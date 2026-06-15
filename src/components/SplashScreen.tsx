@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Settings, History, Play } from 'lucide-react';
-import { getUserSettings } from '../lib/supabase';
+import { getUserSettings } from '../lib/storage';
 
 interface SplashScreenProps {
   onStart: (config: SessionConfig) => void;

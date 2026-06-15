@@ -10,7 +10,7 @@ import SessionHistory from './components/SessionHistory';
 import Settings from './components/Settings';
 import { WPMCalculator, countWords, countChars, SAMPLE_INTERVAL_MS } from './utils/wpmCalculator';
 import { AudioManager } from './utils/audioManager';
-import { saveSession, getUserSettings } from './lib/supabase';
+import { saveSession, getUserSettings } from './lib/storage';
 
 type AppView = 'splash' | 'writing' | 'history' | 'settings';
 

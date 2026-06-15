@@ -8,6 +8,23 @@ Built for authors, fiction writers, essayists, journalers, and anyone who knows 
 
 ---
 
+## Run It Locally
+
+No accounts, no backend, no setup. Everything runs in your browser.
+
+```sh
+git clone https://github.com/lszyrmer/writing-horror.git
+cd writing-horror
+npm install
+npm run dev
+```
+
+Then open the printed local URL. `npm run build` produces a static bundle you can host anywhere.
+
+**Your data stays on your device.** Session history lives in IndexedDB and your settings in `localStorage` — nothing is uploaded, and there is no server to sign in to. Custom sounds you upload are stored locally in the browser too. (History and settings are per-browser, not synced across devices.)
+
+---
+
 ## How It Works
 
 1. **Set your goals.** Choose a word count target (e.g. 500 words) and a time goal (e.g. 30 minutes).
@@ -37,7 +54,7 @@ That's it. No outlines, no templates, no organizational features. Just a blank p
 - **Custom audio** -- Upload your own sounds for the alert, typewriter, paragraph chime, and target WPM notification. Make it as motivating or terrifying as you want.
 
 ### Tracking
-- **Session history** -- Every session is saved with word count, duration, average WPM, and whether you hit your goals. See your writing habits over time.
+- **Session history** -- Every session is saved locally with word count, duration, average WPM, and whether you hit your goals. See your writing habits over time.
 - **Live stats bar** -- During a session, see your current word count, elapsed time, and live WPM at a glance.
 - **Velocity arc & rhythm visualizations** -- Real-time visual displays of your writing speed and consistency sit quietly in the corners of your screen.
 

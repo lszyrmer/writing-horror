@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle, XCircle, Trophy, Clock, FileText, Zap } from 'lucide-react';
-import { getSessions, WritingSession } from '../lib/supabase';
+import { getSessions, WritingSession } from '../lib/storage';
 
 interface SessionHistoryProps {
   onBack: () => void;
@@ -28,7 +28,7 @@ export default function SessionHistory({ onBack }: SessionHistoryProps) {
   function formatDate(dateString?: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
