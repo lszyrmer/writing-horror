@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, Square, Save, CheckCircle, RotateCcw } from 'lucide-react';
 import { getUserSettings, saveUserSettings, saveCustomAudioBlob, deleteCustomAudioBlob } from '../lib/storage';
+import type { SoundType } from '../lib/storage';
 import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
 import { sanitizeNumericInput } from '../utils/numericInput';
 
@@ -48,9 +49,49 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
   const paragraphFileInputRef = useRef<HTMLInputElement>(null);
   const targetWpmFileInputRef = useRef<HTMLInputElement>(null);
 
+  const customUrlsRef = useRef<Record<SoundType, string>>({
+    alert: '',
+    typewriter: '',
+    paragraph: '',
+    targetWpm: '',
+  });
+  customUrlsRef.current = {
+    alert: customAudioUrl,
+    typewriter: customTypewriterUrl,
+    paragraph: customParagraphSoundUrl,
+    targetWpm: customTargetWpmSoundUrl,
+  };
+
   useEffect(() => {
     loadSettings();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      for (const url of Object.values(customUrlsRef.current)) {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      }
+    };
+  }, []);
+
+  function replaceCustomUrl(slot: SoundType, next: string, setter: (url: string) => void) {
+    const prev = customUrlsRef.current[slot];
+    if (prev && prev !== next && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+    customUrlsRef.current[slot] = next;
+    setter(next);
+  }
+
+  async function resetCustomSound(slot: SoundType, clear: () => void) {
+    const prev = customUrlsRef.current[slot];
+    if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+    customUrlsRef.current[slot] = '';
+    clear();
+    try {
+      await deleteCustomAudioBlob(slot);
+    } catch (error) {
+      console.error('Error deleting custom audio:', error);
+    }
+  }
 
   async function loadSettings() {
     try {
@@ -139,7 +180,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
     try {
       await saveCustomAudioBlob('alert', file);
-      setCustomAudioUrl(URL.createObjectURL(file));
+      replaceCustomUrl('alert', URL.createObjectURL(file), setCustomAudioUrl);
       setUseCustomAudio(true);
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -163,7 +204,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
     try {
       await saveCustomAudioBlob('typewriter', file);
-      setCustomTypewriterUrl(URL.createObjectURL(file));
+      replaceCustomUrl('typewriter', URL.createObjectURL(file), setCustomTypewriterUrl);
       setCustomTypewriterName(file.name);
       setUseCustomTypewriter(true);
     } catch (error) {
@@ -204,7 +245,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
     try {
       await saveCustomAudioBlob('paragraph', file);
-      setCustomParagraphSoundUrl(URL.createObjectURL(file));
+      replaceCustomUrl('paragraph', URL.createObjectURL(file), setCustomParagraphSoundUrl);
       setCustomParagraphSoundName(file.name);
       setUseCustomParagraphSound(true);
     } catch (error) {
@@ -245,7 +286,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
     try {
       await saveCustomAudioBlob('targetWpm', file);
-      setCustomTargetWpmSoundUrl(URL.createObjectURL(file));
+      replaceCustomUrl('targetWpm', URL.createObjectURL(file), setCustomTargetWpmSoundUrl);
       setCustomTargetWpmSoundName(file.name);
       setUseCustomTargetWpmSound(true);
     } catch (error) {
@@ -491,7 +532,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomAudio && customAudioUrl && (
                 <button
-                  onClick={() => { setUseCustomAudio(false); setCustomAudioUrl(''); deleteCustomAudioBlob('alert'); }}
+                  onClick={() => { setUseCustomAudio(false); resetCustomSound('alert', () => setCustomAudioUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />
@@ -560,7 +601,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
                   {useCustomTypewriter && customTypewriterUrl && (
                     <button
-                      onClick={() => { setUseCustomTypewriter(false); setCustomTypewriterUrl(''); setCustomTypewriterName(''); deleteCustomAudioBlob('typewriter'); }}
+                      onClick={() => { setUseCustomTypewriter(false); setCustomTypewriterName(''); resetCustomSound('typewriter', () => setCustomTypewriterUrl('')); }}
                       className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                     >
                       <RotateCcw size={14} />
@@ -621,7 +662,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomParagraphSound && customParagraphSoundUrl && (
                 <button
-                  onClick={() => { setUseCustomParagraphSound(false); setCustomParagraphSoundUrl(''); setCustomParagraphSoundName(''); deleteCustomAudioBlob('paragraph'); }}
+                  onClick={() => { setUseCustomParagraphSound(false); setCustomParagraphSoundName(''); resetCustomSound('paragraph', () => setCustomParagraphSoundUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />
@@ -676,7 +717,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomTargetWpmSound && customTargetWpmSoundUrl && (
                 <button
-                  onClick={() => { setUseCustomTargetWpmSound(false); setCustomTargetWpmSoundUrl(''); setCustomTargetWpmSoundName(''); deleteCustomAudioBlob('targetWpm'); }}
+                  onClick={() => { setUseCustomTargetWpmSound(false); setCustomTargetWpmSoundName(''); resetCustomSound('targetWpm', () => setCustomTargetWpmSoundUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />
