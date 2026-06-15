@@ -50,11 +50,14 @@ export default function App() {
   const noBackspaceModeRef = useRef(false);
   const fullscreenEnabledRef = useRef(true);
   const goalAchievedRef = useRef(false);
+  const customAudioUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
     loadAudioSettings();
     return () => {
       audioManagerRef.current.cleanup();
+      customAudioUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      customAudioUrlsRef.current = [];
     };
   }, []);
 
@@ -62,6 +65,13 @@ export default function App() {
     try {
       const settings = await getUserSettings();
       const urls = await getCustomAudioUrls();
+      customAudioUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      customAudioUrlsRef.current = [
+        urls.custom_audio_url,
+        urls.custom_typewriter_url,
+        urls.custom_paragraph_sound_url,
+        urls.custom_target_wpm_sound_url,
+      ].filter(Boolean);
       const am = audioManagerRef.current;
 
       am.setAlertSound(settings?.use_custom_audio && urls.custom_audio_url ? urls.custom_audio_url : undefined);
