@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, Square, Save, CheckCircle, RotateCcw } from 'lucide-react';
-import { getUserSettings, saveUserSettings, saveCustomAudioBlob, deleteCustomAudioBlob } from '../lib/storage';
+import { getUserSettings, getCustomAudioUrls, saveUserSettings, saveCustomAudioBlob, deleteCustomAudioBlob } from '../lib/storage';
 import type { SoundType } from '../lib/storage';
 import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
 import { sanitizeNumericInput } from '../utils/numericInput';
@@ -97,28 +97,29 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
     try {
       const settings = await getUserSettings();
       if (settings) {
+        const urls = await getCustomAudioUrls();
         setDefaultWordGoal(settings.default_word_goal);
         setDefaultTimeGoal(Math.floor(settings.default_time_goal_seconds / 60));
         setDefaultMinWPM(settings.default_minimum_wpm);
         setDefaultNoBackspace(settings.no_backspace_mode);
         setUseCustomAudio(settings.use_custom_audio);
-        setCustomAudioUrl(settings.custom_audio_url);
+        setCustomAudioUrl(urls.custom_audio_url);
         setTypewriterSoundEnabled(settings.typewriter_sound_enabled ?? true);
         setUseCustomTypewriter(settings.use_custom_typewriter ?? false);
-        setCustomTypewriterUrl(settings.custom_typewriter_url ?? '');
-        if (settings.custom_typewriter_url) {
+        setCustomTypewriterUrl(urls.custom_typewriter_url);
+        if (urls.custom_typewriter_url) {
           setCustomTypewriterName('Custom sound uploaded');
         }
         setUseCustomParagraphSound(settings.use_custom_paragraph_sound ?? false);
-        setCustomParagraphSoundUrl(settings.custom_paragraph_sound_url ?? '');
-        if (settings.custom_paragraph_sound_url) {
+        setCustomParagraphSoundUrl(urls.custom_paragraph_sound_url);
+        if (urls.custom_paragraph_sound_url) {
           setCustomParagraphSoundName('Custom sound uploaded');
         }
         setTargetWpm(settings.target_wpm ?? 60);
         setFullscreenEnabled(settings.fullscreen_enabled ?? true);
         setUseCustomTargetWpmSound(settings.use_custom_target_wpm_sound ?? false);
-        setCustomTargetWpmSoundUrl(settings.custom_target_wpm_sound_url ?? '');
-        if (settings.custom_target_wpm_sound_url) {
+        setCustomTargetWpmSoundUrl(urls.custom_target_wpm_sound_url);
+        if (urls.custom_target_wpm_sound_url) {
           setCustomTargetWpmSoundName('Custom sound uploaded');
         }
       }

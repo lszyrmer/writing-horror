@@ -10,7 +10,7 @@ import SessionHistory from './components/SessionHistory';
 import Settings from './components/Settings';
 import { WPMCalculator, countWords, countChars, SAMPLE_INTERVAL_MS } from './utils/wpmCalculator';
 import { AudioManager } from './utils/audioManager';
-import { saveSession, getUserSettings } from './lib/storage';
+import { saveSession, getUserSettings, getCustomAudioUrls } from './lib/storage';
 
 type AppView = 'splash' | 'writing' | 'history' | 'settings';
 
@@ -61,13 +61,14 @@ export default function App() {
   async function loadAudioSettings() {
     try {
       const settings = await getUserSettings();
+      const urls = await getCustomAudioUrls();
       const am = audioManagerRef.current;
 
-      am.setAlertSound(settings?.use_custom_audio && settings.custom_audio_url ? settings.custom_audio_url : undefined);
+      am.setAlertSound(settings?.use_custom_audio && urls.custom_audio_url ? urls.custom_audio_url : undefined);
       am.setTypewriterEnabled(settings?.typewriter_sound_enabled ?? true);
-      am.setTypewriterSound(settings?.use_custom_typewriter && settings.custom_typewriter_url ? settings.custom_typewriter_url : undefined);
-      am.setParagraphSound(settings?.use_custom_paragraph_sound && settings.custom_paragraph_sound_url ? settings.custom_paragraph_sound_url : undefined);
-      am.setTargetWpmSound(settings?.use_custom_target_wpm_sound && settings.custom_target_wpm_sound_url ? settings.custom_target_wpm_sound_url : undefined);
+      am.setTypewriterSound(settings?.use_custom_typewriter && urls.custom_typewriter_url ? urls.custom_typewriter_url : undefined);
+      am.setParagraphSound(settings?.use_custom_paragraph_sound && urls.custom_paragraph_sound_url ? urls.custom_paragraph_sound_url : undefined);
+      am.setTargetWpmSound(settings?.use_custom_target_wpm_sound && urls.custom_target_wpm_sound_url ? urls.custom_target_wpm_sound_url : undefined);
 
       if (settings) {
         const minWpm = settings.default_minimum_wpm ?? 30;

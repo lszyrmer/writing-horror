@@ -176,26 +176,41 @@ export async function getUserSettings(): Promise<UserSettings | null> {
   const stored = readPersistedSettings();
   if (!stored) return null;
 
-  const settings = {
+  return {
     custom_audio_url: '',
     custom_typewriter_url: '',
     custom_paragraph_sound_url: '',
     custom_target_wpm_sound_url: '',
     ...stored,
   } as UserSettings;
+}
 
-  // Rehydrate custom-sound object URLs from stored blobs. The caller owns these
-  // URLs; they are reclaimed when the page reloads.
+export type CustomAudioUrls = Pick<
+  UserSettings,
+  'custom_audio_url' | 'custom_typewriter_url' | 'custom_paragraph_sound_url' | 'custom_target_wpm_sound_url'
+>;
+
+// Mint object URLs for the stored custom-sound blobs. The caller owns these
+// URLs and is responsible for revoking them. Only consumers that play audio
+// should call this; reading settings (goals, flags) does not mint URLs.
+export async function getCustomAudioUrls(): Promise<CustomAudioUrls> {
+  const urls: CustomAudioUrls = {
+    custom_audio_url: '',
+    custom_typewriter_url: '',
+    custom_paragraph_sound_url: '',
+    custom_target_wpm_sound_url: '',
+  };
+
   await Promise.all(
     (Object.keys(SOUND_URL_FIELD) as SoundType[]).map(async (type) => {
       const blob = await getAudioBlob(type);
       if (blob) {
-        (settings[SOUND_URL_FIELD[type]] as string) = URL.createObjectURL(blob);
+        (urls[SOUND_URL_FIELD[type] as keyof CustomAudioUrls] as string) = URL.createObjectURL(blob);
       }
     }),
   );
 
-  return settings;
+  return urls;
 }
 
 export async function saveUserSettings(partial: Partial<UserSettings>): Promise<UserSettings> {
