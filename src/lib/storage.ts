@@ -172,18 +172,9 @@ function readPersistedSettings(): Partial<PersistedSettings> | null {
   }
 }
 
-// Object URLs handed out by the previous getUserSettings call, revoked before
-// the next batch is minted so repeated reads don't accumulate blob URLs.
-let issuedAudioUrls: string[] = [];
-
 export async function getUserSettings(): Promise<UserSettings | null> {
   const stored = readPersistedSettings();
   if (!stored) return null;
-
-  for (const url of issuedAudioUrls) {
-    URL.revokeObjectURL(url);
-  }
-  issuedAudioUrls = [];
 
   const settings = {
     custom_audio_url: '',
@@ -193,14 +184,13 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     ...stored,
   } as UserSettings;
 
-  // Rehydrate custom-sound object URLs from stored blobs.
+  // Rehydrate custom-sound object URLs from stored blobs. The caller owns these
+  // URLs; they are reclaimed when the page reloads.
   await Promise.all(
     (Object.keys(SOUND_URL_FIELD) as SoundType[]).map(async (type) => {
       const blob = await getAudioBlob(type);
       if (blob) {
-        const url = URL.createObjectURL(blob);
-        issuedAudioUrls.push(url);
-        (settings[SOUND_URL_FIELD[type]] as string) = url;
+        (settings[SOUND_URL_FIELD[type]] as string) = URL.createObjectURL(blob);
       }
     }),
   );
