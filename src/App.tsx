@@ -11,6 +11,7 @@ import Settings from './components/Settings';
 import { WPMCalculator, countWords, countChars, SAMPLE_INTERVAL_MS } from './utils/wpmCalculator';
 import { AudioManager } from './utils/audioManager';
 import { saveSession, getUserSettings, getCustomAudioUrls } from './lib/storage';
+import { brand } from './brand';
 
 type AppView = 'splash' | 'writing' | 'history' | 'settings';
 
@@ -53,6 +54,7 @@ export default function App() {
   const customAudioUrlsRef = useRef<string[]>([]);
 
   useEffect(() => {
+    document.title = brand.name;
     loadAudioSettings();
     return () => {
       audioManagerRef.current.cleanup();
