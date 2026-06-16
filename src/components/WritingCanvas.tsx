@@ -1,4 +1,5 @@
 import { useRef, useEffect, KeyboardEvent } from 'react';
+import { brand } from '../brand';
 
 interface WritingCanvasProps {
   text: string;
@@ -75,7 +76,7 @@ export default function WritingCanvas({ text, onChange, noBackspaceMode, goalAch
       onCopy={handleCopy}
       onCut={handleCut}
       className="w-full h-full bg-transparent text-gray-100 text-base sm:text-lg leading-relaxed resize-none outline-none border-none pl-4 sm:pl-8 pr-6 sm:pr-10 py-4 sm:py-8 font-mono"
-      placeholder="Start typing..."
+      placeholder={brand.copy.canvasPlaceholder}
       spellCheck={false}
       autoCapitalize="off"
       autoCorrect="off"

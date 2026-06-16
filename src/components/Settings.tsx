@@ -4,6 +4,7 @@ import { getUserSettings, getCustomAudioUrls, saveUserSettings, saveCustomAudioB
 import type { SoundType } from '../lib/storage';
 import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
 import { sanitizeNumericInput } from '../utils/numericInput';
+import { brand } from '../brand';
 
 interface SettingsProps {
   onBack: () => void;
@@ -430,7 +431,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                   min="1"
                   max="300"
                 />
-                <p className="text-gray-500 text-sm mt-1">Fall below this and face the consequences</p>
+                <p className="text-gray-500 text-sm mt-1">{brand.copy.minWpmHelp}</p>
               </div>
 
               <div>

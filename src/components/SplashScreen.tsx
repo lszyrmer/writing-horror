@@ -102,7 +102,7 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
             className="w-full mt-6 sm:mt-8 bg-gray-100 hover:bg-white text-dark font-semibold py-3.5 sm:py-4 rounded transition-colors flex items-center justify-center space-x-2"
           >
             <Play size={20} />
-            <span>Start Writing</span>
+            <span>{brand.copy.startButton}</span>
           </button>
         </div>
 
