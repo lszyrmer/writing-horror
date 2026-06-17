@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Upload, Play, Square, Save, CheckCircle, RotateCcw } from 'lucide-react';
-import { getUserSettings, saveUserSettings, saveCustomAudio } from '../lib/supabase';
+import { getUserSettings, getCustomAudioUrls, saveUserSettings, saveCustomAudioBlob, deleteCustomAudioBlob } from '../lib/storage';
+import type { SoundType } from '../lib/storage';
 import { DEFAULT_SOUNDS } from '../utils/defaultSounds';
 import { sanitizeNumericInput } from '../utils/numericInput';
+import { brand } from '../brand';
 
 interface SettingsProps {
   onBack: () => void;
@@ -48,36 +50,77 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
   const paragraphFileInputRef = useRef<HTMLInputElement>(null);
   const targetWpmFileInputRef = useRef<HTMLInputElement>(null);
 
+  const customUrlsRef = useRef<Record<SoundType, string>>({
+    alert: '',
+    typewriter: '',
+    paragraph: '',
+    targetWpm: '',
+  });
+  customUrlsRef.current = {
+    alert: customAudioUrl,
+    typewriter: customTypewriterUrl,
+    paragraph: customParagraphSoundUrl,
+    targetWpm: customTargetWpmSoundUrl,
+  };
+
   useEffect(() => {
     loadSettings();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      for (const url of Object.values(customUrlsRef.current)) {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      }
+    };
+  }, []);
+
+  function replaceCustomUrl(slot: SoundType, next: string, setter: (url: string) => void) {
+    const prev = customUrlsRef.current[slot];
+    if (prev && prev !== next && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+    customUrlsRef.current[slot] = next;
+    setter(next);
+  }
+
+  async function resetCustomSound(slot: SoundType, clear: () => void) {
+    const prev = customUrlsRef.current[slot];
+    if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+    customUrlsRef.current[slot] = '';
+    clear();
+    try {
+      await deleteCustomAudioBlob(slot);
+    } catch (error) {
+      console.error('Error deleting custom audio:', error);
+    }
+  }
 
   async function loadSettings() {
     try {
       const settings = await getUserSettings();
       if (settings) {
+        const urls = await getCustomAudioUrls();
         setDefaultWordGoal(settings.default_word_goal);
         setDefaultTimeGoal(Math.floor(settings.default_time_goal_seconds / 60));
         setDefaultMinWPM(settings.default_minimum_wpm);
         setDefaultNoBackspace(settings.no_backspace_mode);
         setUseCustomAudio(settings.use_custom_audio);
-        setCustomAudioUrl(settings.custom_audio_url);
+        setCustomAudioUrl(urls.custom_audio_url);
         setTypewriterSoundEnabled(settings.typewriter_sound_enabled ?? true);
         setUseCustomTypewriter(settings.use_custom_typewriter ?? false);
-        setCustomTypewriterUrl(settings.custom_typewriter_url ?? '');
-        if (settings.custom_typewriter_url) {
+        setCustomTypewriterUrl(urls.custom_typewriter_url);
+        if (urls.custom_typewriter_url) {
           setCustomTypewriterName('Custom sound uploaded');
         }
         setUseCustomParagraphSound(settings.use_custom_paragraph_sound ?? false);
-        setCustomParagraphSoundUrl(settings.custom_paragraph_sound_url ?? '');
-        if (settings.custom_paragraph_sound_url) {
+        setCustomParagraphSoundUrl(urls.custom_paragraph_sound_url);
+        if (urls.custom_paragraph_sound_url) {
           setCustomParagraphSoundName('Custom sound uploaded');
         }
         setTargetWpm(settings.target_wpm ?? 60);
         setFullscreenEnabled(settings.fullscreen_enabled ?? true);
         setUseCustomTargetWpmSound(settings.use_custom_target_wpm_sound ?? false);
-        setCustomTargetWpmSoundUrl(settings.custom_target_wpm_sound_url ?? '');
-        if (settings.custom_target_wpm_sound_url) {
+        setCustomTargetWpmSoundUrl(urls.custom_target_wpm_sound_url);
+        if (urls.custom_target_wpm_sound_url) {
           setCustomTargetWpmSoundName('Custom sound uploaded');
         }
       }
@@ -138,29 +181,16 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
     }
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const base64 = event.target?.result as string;
-
-        const audioFile = {
-          file_name: file.name,
-          file_url: base64,
-          file_size: file.size,
-          mime_type: file.type,
-        };
-
-        await saveCustomAudio(audioFile);
-        setCustomAudioUrl(base64);
-        setUseCustomAudio(true);
-      };
-      reader.readAsDataURL(file);
+      await saveCustomAudioBlob('alert', file);
+      replaceCustomUrl('alert', URL.createObjectURL(file), setCustomAudioUrl);
+      setUseCustomAudio(true);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Failed to upload audio file');
     }
   }
 
-  function handleTypewriterFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleTypewriterFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -174,14 +204,15 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setCustomTypewriterUrl(base64);
+    try {
+      await saveCustomAudioBlob('typewriter', file);
+      replaceCustomUrl('typewriter', URL.createObjectURL(file), setCustomTypewriterUrl);
       setCustomTypewriterName(file.name);
       setUseCustomTypewriter(true);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload audio file');
+    }
   }
 
   function handleTestTypewriterAudio() {
@@ -200,7 +231,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
     }
   }
 
-  function handleParagraphFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleParagraphFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -214,14 +245,15 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setCustomParagraphSoundUrl(base64);
+    try {
+      await saveCustomAudioBlob('paragraph', file);
+      replaceCustomUrl('paragraph', URL.createObjectURL(file), setCustomParagraphSoundUrl);
       setCustomParagraphSoundName(file.name);
       setUseCustomParagraphSound(true);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload audio file');
+    }
   }
 
   function handleTestParagraphAudio() {
@@ -240,7 +272,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
     }
   }
 
-  function handleTargetWpmFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleTargetWpmFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -254,14 +286,15 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      setCustomTargetWpmSoundUrl(base64);
+    try {
+      await saveCustomAudioBlob('targetWpm', file);
+      replaceCustomUrl('targetWpm', URL.createObjectURL(file), setCustomTargetWpmSoundUrl);
       setCustomTargetWpmSoundName(file.name);
       setUseCustomTargetWpmSound(true);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload audio file');
+    }
   }
 
   function handleTestTargetWpmAudio() {
@@ -398,7 +431,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
                   min="1"
                   max="300"
                 />
-                <p className="text-gray-500 text-sm mt-1">Fall below this and face the consequences</p>
+                <p className="text-gray-500 text-sm mt-1">{brand.copy.minWpmHelp}</p>
               </div>
 
               <div>
@@ -501,7 +534,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomAudio && customAudioUrl && (
                 <button
-                  onClick={() => { setUseCustomAudio(false); setCustomAudioUrl(''); }}
+                  onClick={() => { setUseCustomAudio(false); resetCustomSound('alert', () => setCustomAudioUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />
@@ -570,7 +603,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
                   {useCustomTypewriter && customTypewriterUrl && (
                     <button
-                      onClick={() => { setUseCustomTypewriter(false); setCustomTypewriterUrl(''); setCustomTypewriterName(''); }}
+                      onClick={() => { setUseCustomTypewriter(false); setCustomTypewriterName(''); resetCustomSound('typewriter', () => setCustomTypewriterUrl('')); }}
                       className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                     >
                       <RotateCcw size={14} />
@@ -631,7 +664,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomParagraphSound && customParagraphSoundUrl && (
                 <button
-                  onClick={() => { setUseCustomParagraphSound(false); setCustomParagraphSoundUrl(''); setCustomParagraphSoundName(''); }}
+                  onClick={() => { setUseCustomParagraphSound(false); setCustomParagraphSoundName(''); resetCustomSound('paragraph', () => setCustomParagraphSoundUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />
@@ -686,7 +719,7 @@ export default function Settings({ onBack, onAudioChange, onTypewriterChange, on
 
               {useCustomTargetWpmSound && customTargetWpmSoundUrl && (
                 <button
-                  onClick={() => { setUseCustomTargetWpmSound(false); setCustomTargetWpmSoundUrl(''); setCustomTargetWpmSoundName(''); }}
+                  onClick={() => { setUseCustomTargetWpmSound(false); setCustomTargetWpmSoundName(''); resetCustomSound('targetWpm', () => setCustomTargetWpmSoundUrl('')); }}
                   className="w-full bg-dark border border-dark-lighter hover:border-gray-500 text-gray-400 py-2 rounded transition-colors flex items-center justify-center space-x-2 text-sm"
                 >
                   <RotateCcw size={14} />

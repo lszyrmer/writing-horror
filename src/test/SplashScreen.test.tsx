@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SplashScreen from '../components/SplashScreen';
 
-vi.mock('../lib/supabase', () => ({
+vi.mock('../lib/storage', () => ({
   getUserSettings: vi.fn().mockResolvedValue({
     default_word_goal: 500,
     default_time_goal_seconds: 1800,

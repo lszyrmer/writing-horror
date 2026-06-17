@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings, History, Play } from 'lucide-react';
-import { getUserSettings } from '../lib/supabase';
+import { getUserSettings } from '../lib/storage';
+import { brand } from '../brand';
 
 interface SplashScreenProps {
   onStart: (config: SessionConfig) => void;
@@ -60,8 +61,8 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
     <div className="min-h-screen bg-dark flex items-center justify-center px-4 py-8 sm:p-4">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8 sm:mb-12">
-          <h1 className="text-4xl sm:text-6xl font-bold mb-3 sm:mb-4 text-gray-100">Writing Horror</h1>
-          <p className="text-gray-400 text-base sm:text-lg">Distraction-free writing with reinforcement</p>
+          <h1 className="text-4xl sm:text-6xl font-bold mb-3 sm:mb-4 text-gray-100">{brand.name}</h1>
+          <p className="text-gray-400 text-base sm:text-lg">{brand.tagline}</p>
         </div>
 
         <div className="bg-dark-light border border-dark-lighter rounded-lg p-5 sm:p-8 mb-4 sm:mb-6">
@@ -101,7 +102,7 @@ export default function SplashScreen({ onStart, onViewHistory, onViewSettings }:
             className="w-full mt-6 sm:mt-8 bg-gray-100 hover:bg-white text-dark font-semibold py-3.5 sm:py-4 rounded transition-colors flex items-center justify-center space-x-2"
           >
             <Play size={20} />
-            <span>Start Writing</span>
+            <span>{brand.copy.startButton}</span>
           </button>
         </div>
 
